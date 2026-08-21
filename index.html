@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+
+<head>
+
+    <meta charset="utf-8">
+
+    <title>龙珠交互式地图</title>
+
+    <meta name="description" content="DBO交互式地图工具">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+
+    <script type="text/javascript">
+
+        // =====================【关键改动：分组改为对象，每个分组绑定固定英文slug，不再从中文名字生成ID】=====================
+
+        const _default_map = "world";
+
+        const _map_groups = [
+
+            {
+
+                slug:"world-map",
+
+                label:"世界地图",
+
+                maps:["world"]
+
+            },
+
+            {
+
+                slug:"world-zones",
+
+                label:"区域地图",
+
+                maps:[
+
+                    "fearland", "franfran-desert-north", "karin-forest","papaya-island", 
+
+                    "mushroom-rocks-north", "mushroom-rocks-south", "porunga-rocks-north","porunga-rocks-south", 
+
+                    "west-city", "westlands", "yahhoi-east", "yahhoi-west",
+
+                    "world-martial-arts-tournament-city", "guild-dojo", "kame-house",
+
+                ]
+
+            },
+
+            {
+
+                slug:"dungeons",
+
+                label:"大世界副本",
+
+                maps:[
+
+                    "dragon-cave", "underground-waterway", "yahhoi-fort", "red-ribbon-army-hq-ruins", "red-ribbon-army-underground-base-ruins", "fuel-research-plant",
+
+                    "pilafs-museum", "red-pants-army-hq", "red-pants-armys-robotics-facility", "secret-waterfall-cave", "hoi-poi-stone-mine", "pilafs-castle",
+
+                ]
+
+            },
+
+            {
+
+                slug:"tmqs",
+
+                label:"时光机副本（TMQ）",
+
+                maps:["tmq-1", "tmq-2-part-1","tmq-2-part-3", "tmq-3-day", "tmq-3-night", "tmq-4", "tmq-5", "tmq-6"]
+
+            },
+
+            {
+
+                slug:"tlqs",
+
+                label:"时空裂缝（TLQ）",
+
+                maps:["tlq-1", "tlq-2", "tlq-3"]
+
+            }
+
+        ];
+
+
+
+        const _valid_maps = {
+
+            "world": {"display_name":"世界","map":"world"},
+
+            "fearland": {"display_name":"奥索罗岛","map":"fearland"},
+
+            "westlands": {"display_name":"维斯特兰","map":"westlands"},
+
+            "mushroom-rocks-north": {"display_name":"蘑菇巨石北部","map":"mushroom_rocks_north"},
+
+            "mushroom-rocks-south": {"display_name":"蘑菇巨石南部","map":"mushroom_rocks_south"},
+
+            "yahhoi-east": {"display_name":"东雅荷","map":"yahhoi_east"},
+
+            "yahhoi-west": {"display_name":"西雅荷","map":"yahhoi_west"},
+
+            "porunga-rocks-north": {"display_name":"波路亚巨石北部","map":"porunga_rocks_north"},
+
+            "porunga-rocks-south": {"display_name":"波路亚巨石南部","map":"porunga_rocks_south"},
+
+            "franfran-desert-north": {"display_name":"法朗沙漠北部","map":"franfran_desert_north"},
+
+            "karin-forest": {"display_name":"凯里森林","map":"karin_forest"},
+
+            "west-city": {"display_name":"西都","map":"west_city"},
+
+            "world-martial-arts-tournament-city":{"display_name":"武道寺","map":"world_martial_arts_tournament_city"},
+
+            "kame-house": {"display_name":"龟仙屋","map":"kame_house"},
+
+            "papaya-island": {"display_name":"番木瓜诸岛","map":"papaya_island"},
+
+            "guild-dojo": {"display_name":"流派道场","map":"guild_dojo"},
+
+            "yahhoi-fort": {"display_name":"雅荷要塞","map":"yahhoi_fort"},
+
+            "dragon-cave": {"display_name":"神龙峡谷","map":"dragon_cave"},
+
+            "underground-waterway": {"display_name":"噗通下水道","map":"underground_waterway"},
+
+            "red-ribbon-army-underground-base-ruins": {"display_name":"（UD1）红领巾军地下基地废墟","map":"red_ribbon_army_underground_base_ruins"},
+
+            "red-ribbon-army-hq-ruins": {"display_name":"红领巾军总部废墟","map":"red_ribbon_army_hq_ruins"},
+
+            "tmq-1": {"display_name":"TMQ 1","map":"tmq_1"},
+
+            "tmq-2-part-1": {"display_name":"TMQ 2（第1部分）","map":"tmq_2_part_1"},
+
+            "tmq-2-part-2": {"display_name":"TMQ 2（第2部分）","map":"kame_house"},
+
+            "tmq-2-part-3": {"display_name":"TMQ 2（第3部分）","map":"tmq_1"},
+
+            "tmq-3-day": {"display_name":"TMQ 3（白天）","map":"tmq_3_day"},
+
+            "tmq-3-night": {"display_name":"TMQ 3（夜晚）","map":"tmq_3_night"},
+
+            "tmq-4": {"display_name":"TMQ 4","map":"tmq_4"},
+
+            "tmq-5": {"display_name":"TMQ 5","map":"tmq_5"},
+
+            "tmq-6": {"display_name":"TMQ 6","map":"tmq_6"},
+
+            "tlq-1": {"display_name":"TLQ 1","map":"tlq_1"},
+
+            "tlq-2": {"display_name":"TLQ 2","map":"tlq_2"},
+
+            "tlq-3": {"display_name":"TLQ 3","map":"tlq_3"},
+
+            "fuel-research-plant": {"display_name":"燃料研究所（无官方图）","map":null},
+
+            "hoi-poi-stone-mine": {"display_name":"霍伊波伊石矿（无官方图）","map":null},
+
+            "pilafs-castle": {"display_name":"皮拉夫城堡（无官方图）","map":null},
+
+            "pilafs-museum": {"display_name":"皮拉夫博物馆（无官方图）","map":null},
+
+            "red-pants-army-hq": {"display_name":"红领巾军总部（无官方图）","map":null},
+
+            "red-pants-armys-robotics-facility": {"display_name":"红领巾军机器人工厂（无官方图）","map":null},
+
+            "secret-waterfall-cave": {"display_name":"隐秘瀑布洞窟（无官方图）","map":null}
+
+        };
+
+        // =====================重写switchView：全部使用预先定义的slug，只打开当前点击分组=====================
+
+        function switchView(activeSlug){
+
+            for(const group of _map_groups){
+
+                const btn = document.getElementById(group.slug + "-button");
+
+                const sel = document.getElementById(group.slug + "-selections");
+
+                if(!btn || !sel) continue;
+
+                if(group.slug === activeSlug){
+
+                    btn.classList.add("highlighted");
+
+                    sel.style.display = "block";
+
+                }else{
+
+                    btn.classList.remove("highlighted");
+
+                    sel.style.display = "none";
+
+                }
+
+            }
+
+        }
+
+
+
+        function parseUrlParams(){
+
+            const params = new URLSearchParams(window.location.search);
+
+            let map = _default_map;
+
+            const getMap = params.get("map");
+
+            if(getMap && _valid_maps[getMap] && _valid_maps[getMap]["map"]){
+
+                map = getMap;
+
+            }
+
+
+
+            let markers = [];
+
+            const markerStr = params.get("markers");
+
+            if(markerStr && !isNaN(markerStr) && (markerStr.length %11 ===0)){
+
+                for(let i=0;i<markerStr.length;i+=11){
+
+                    markers.push([
+
+                        parseInt(markerStr.substring(i+1,i+6)),
+
+                        parseInt(markerStr.substring(i+6,i+11)),
+
+                        parseInt(markerStr[i]),
+
+                        0
+
+                    ]);
+
+                }
+
+            }
+
+
+
+            let coordinate = 0;
+
+            const coordStr = params.get("coord");
+
+            if(coordStr && !isNaN(coordStr)) coordinate = Number(coordStr);
+
+
+
+            let filters;
+
+            const filterStr = params.get("filter");
+
+            if(filterStr && filterStr.length===3 && !isNaN(filterStr)){
+
+                const tmp = [];
+
+                for(let i=0;i<3;i++){
+
+                    const c = filterStr[i];
+
+                    if(c==="0"||c==="1") tmp.push(parseInt(c));
+
+                }
+
+                if(tmp.length===3) filters = tmp;
+
+            }
+
+            if(!filters){
+
+                filters = (map==="world") ? [1,0,0] : [1,1,1];
+
+            }
+
+
+
+            let active_group = null;
+
+            for(const g of _map_groups){
+
+                if(g.maps.length>1){
+
+                    if(g.maps.includes(map)){
+
+                        active_group = g.slug;
+
+                        break;
+
+                    }else if(active_group===null){
+
+                        active_group = g.slug;
+
+                    }
+
+                }
+
+            }
+
+            return {map, markers, coordinate, filters, active_group};
+
+        }
+
+
+
+        let marker, filter, current, mapnum, mapname, active_group;
+
+        const base_url = window.location.pathname;
+
+
+
+        function loadMapJs(mapJsName){
+
+            return new Promise((resolve)=>{
+
+                const s = document.createElement('script');
+
+                s.src = `js/maps/${mapJsName}.js`;
+
+                s.onload = resolve;
+
+                document.head.appendChild(s);
+
+            });
+
+        }
+
+
+
+        // =====================渲染导航UI，外层增加max-width限制容器，实现自动换行=====================
+
+        function buildMapSelectorUI(activeSlug, currMap){
+
+            let html = "";
+
+            for(const group of _map_groups){
+
+                if(group.maps.length ===1){
+
+                    const link = `${base_url}?map=${group.maps[0]}`;
+
+                    html += `
+
+                    <a href="${link}">
+
+                        <div class="small-button" onClick="window.location.href='${link}';">
+
+                            <table>
+
+                                <tr>
+
+                                    <td class="blue-bottom-left"></td>
+
+                                    <td class="blue-bottom-center">${group.label}</td>
+
+                                    <td class="blue-bottom-right"></td>
+
+                                </tr>
+
+                            </table>
+
+                        </div>
+
+                    </a>`;
+
+                }else{
+
+                    const isHighlight = (activeSlug===group.slug) ? "highlighted" : "";
+
+                    html += `
+
+                    <a href="javascript:switchView('${group.slug}');">
+
+                        <div id="${group.slug}-button" class="small-button ${isHighlight}" onClick="switchView('${group.slug}');">
+
+                            <table>
+
+                                <tr>
+
+                                    <td class="blue-bottom-left"></td>
+
+                                    <td class="blue-bottom-center">${group.label}</td>
+
+                                    <td class="blue-bottom-right"></td>
+
+                                </tr>
+
+                            </table>
+
+                        </div>
+
+                    </a>`;
+
+                }
+
+            }
+
+            for(const group of _map_groups){
+
+                if(group.maps.length>1){
+
+                    const showStyle = (activeSlug!==group.slug) ? 'style="display:none"' : "";
+
+                    // 外层增加限制最大宽度的div，强制约束宽度，实现inline‑block自动换行
+
+                    html += `<div style="max-width:934px;box-sizing:border-box;">`;
+
+                    html += `<div class="map-selection" id="${group.slug}-selections" ${showStyle}>`;
+
+                    for(let k=0;k<group.maps.length;k++){
+
+                        const item = group.maps[k];
+
+                        const isActive = (currMap===item) ? 'class="active-map-selection"' : "";
+
+                        const dispName = _valid_maps[item]["display_name"];
+
+                        const mapVal = _valid_maps[item]["map"];
+
+                        if(mapVal){
+
+                            html += `<span ${isActive}><a href="${base_url}?map=${item}">${dispName}</a></span>`;
+
+                        }else{
+
+                            html += `<span ${isActive}>${dispName}</span>`;
+
+                        }
+
+                    }
+
+                    html += "</div></div>"; // 闭合两层div
+
+                }
+
+            }
+
+            document.getElementById("map-selector-container").innerHTML = html;
+
+        }
+
+
+
+        async function pageBootstrap(){
+
+            const params = parseUrlParams();
+
+            mapname = params.map;
+
+            marker = params.markers;
+
+            filter = params.filters;
+
+            current = params.coordinate;
+
+            active_group = params.active_group;
+
+            mapnum = _valid_maps[mapname]["map"];
+
+
+
+            buildMapSelectorUI(active_group, mapname);
+
+
+
+            document.getElementById("filter0").className = filter[0] ? "filter-on" : "filter-off";
+
+            document.getElementById("filter1").className = filter[1] ? "filter-on" : "filter-off";
+
+            document.getElementById("filter2").className = filter[2] ? "filter-on" : "filter-off";
+
+
+
+            if(mapnum){
+
+                document.getElementById("bigmap").style.background = `url(img/map/${mapnum}.jpg) no-repeat`;
+
+            }
+
+
+
+            if(mapnum){
+
+                await loadMapJs(mapnum);
+
+            }
+
+            init();
+
+        }
+
+    </script>
+
+     <style>
+
+     body,html {
+
+         width:auto !important;
+
+         margin:0 !important;
+
+         padding:12px !important;
+
+     }
+
+     body{
+
+         display:flex !important;
+
+         justify-content:center !important;
+
+         background-color:#e6e6e6 !important;
+
+     }
+
+     .page-wrap {
+
+         flex-shrink: 0;
+
+     }
+
+     /* 深色大外壳，全部内容装进去 */
+
+     .main-wrapper {
+
+         background:#2c3038;
+
+         border:2px solid #51555D;
+
+         border-radius:10px;
+
+         padding:14px;
+
+     }
+
+     /* 容器内部普通文字变成浅色 */
+
+     .main-wrapper > span {
+
+         color:#eeeeee !important;
+
+         font-size:10pt;
+
+     }
+
+     /* 模块之间增加间距 */
+
+     .titlebar {
+
+         margin-bottom:10px !important;
+
+     }
+
+     .map-selection {
+
+         margin:0 0 12px 0 !important;
+
+     }
+
+     /* ==========子选项自动换行设置，强制覆盖外部css的nowrap========== */
+
+     .map-selection span {
+
+          white-space:normal !important;
+
+          display:inline-block !important;
+
+          padding:2px 6px !important;
+
+          margin:2px 0 !important;
+
+     }
+
+     .map-selection span:not(:last-child)::after{
+
+         content:"|";
+
+         margin-left:6px;
+
+         color:#cccccc;
+
+     }
+
+     /* =================================================== */
+
+     .map-main-table td:first-child {
+
+          vertical-align: middle !important;
+
+     }
+     .map-enlarged {
+
+         box-shadow: 0 0 10px rgba(0,0,0,0.5);
+
+         border-radius:6px;
+
+         overflow:hidden !important;
+
+     }
+     .bigmap-background {
+
+         border-radius:6px;
+
+         overflow:hidden !important;
+
+     }
+
+     .author-footer-note {
+
+          margin-top:0px;
+
+          text-align:center;
+
+          color:#cccccc !important;
+
+          font-size:14px;
+
+     }
+
+     </style>
+
+</head>
+
+<body>
+
+<div class="page-wrap">
+
+    <!-- 新增深色容器main-wrapper，包裹全部页面 -->
+
+    <div class="main-wrapper">
+
+<table class="titlebar">
+
+    <tr>
+
+        <td class="titlebar-topleft"></td>
+
+        <td class="titlebar-top"></td>
+
+        <td class="titlebar-topright"></td>
+
+    </tr>
+
+    <tr>
+
+        <td class="titlebar-left"></td>
+
+        <td id="map-selector-container">
+
+        </td>
+
+        <td class="titlebar-right"></td>
+
+    </tr>
+
+    <tr>
+
+        <td class="titlebar-bottomleft"></td>
+
+        <td class="titlebar-bottom"></td>
+
+        <td class="titlebar-bottomright"></td>
+
+    </tr>
+
+</table>
+
+<br>
+
+<span>点击上方标签选择你需要的地图，用以寻找地图传送点、娜美坎印记（阴影塔）以及你需要的任何点位，本网页完全开源，可在github上搜索</span>
+
+<br>
+
+<br>
+
+<table class="map-main-table" onselectstart="return false" ondragstart="return false">
+
+    <tr>
+
+        <td style="vertical-align: top;">
+            <div style="margin-top:-30px;">
+
+                 <div class="left-panel-title">当前区域实时地图</div>
+
+                 <div class="map-enlarged" id="smallmap" style="position: relative;" oncontextmenu="addmarker(event,0); return false;">
+
+                     <div id="markerssmall" style="position: absolute; z-index: 1;"></div>
+
+                     <div class="map-enlarged-background" style="position: absolute; top: 0px; left: 0px;"></div>
+
+                     <div class="map-enlarged-background-gradient" oncontextmenu="return false"></div>
+
+                     <table>
+
+                         <tr>
+
+                             <td class="map-enlarged-image" id="map1"></td>
+
+                             <td class="map-enlarged-image" id="map2"></td>
+
+                             <td class="map-enlarged-image" id="map3"></td>
+
+                         </tr>
+
+                         <tr>
+
+                             <td class="map-enlarged-image" id="map4"></td>
+
+                             <td class="map-enlarged-image" id="map5"></td>
+
+                             <td class="map-enlarged-image" id="map6"></td>
+
+                         </tr>
+
+                         <tr>
+
+                            <td class="map-enlarged-image" id="map7"></td>
+
+                             <td class="map-enlarged-image" id="map8"></td>
+
+                             <td class="map-enlarged-image" id="map9"></td>
+
+                         </tr>
+
+                     </table>
+                </div>
+            </div>
+
+        </td>
+
+        <td style="vertical-align: top; padding-left: 16px;">
+
+            <div class="bigmap-background" style="position: relative;" onclick="jumpmap(event)" oncontextmenu="addmarker(event,1)">
+
+                <div id="bigmap" style="float: left;">
+
+                    <div id="markersbig" style="position: absolute; z-index: 1;"></div>
+
+                    <div style="position: absolute; z-index: 2;">
+
+                        <img oncontextmenu="return false;" id="mapbox" src="img/50p_white.png" style="position: absolute; display: none;">
+
+                    </div>
+
+                </div>
+
+                <div class="map-gradient" oncontextmenu="return false"></div>
+
+                <div class="instructions" oncontextmenu="return false">
+
+                     点击地图，调整左侧实时地图的位置。<br><br>
+
+                     在地图上点击右键放置自定义标记，再次右键可以删除自定义标记。<br><br>
+
+                     自定义标记点样式：<br>
+
+                    <div id="selectmarker0" class="marker-style-selected"><a href="javascript:void(0)" onclick="changemarker(0);"><img src="img/marker0.png"></a></div>
+
+                    <div id="selectmarker1" class="marker-style"><a href="javascript:void(0)" onclick="changemarker(1);"><img src="img/marker1.png"></a></div>
+
+                    <div id="selectmarker2" class="marker-style"><a href="javascript:void(0)" onclick="changemarker(2);"><img src="img/marker2.png"></a></div>
+
+                    <div id="selectmarker3" class="marker-style"><a href="javascript:void(0)" onclick="changemarker(3);"><img src="img/marker3.png"></a></div>
+
+                    <div id="selectmarker4" class="marker-style"><a href="javascript:void(0)" onclick="changemarker(4);"><img src="img/marker4.png"></a></div>
+
+                    <div id="selectmarker5" class="marker-style"><a href="javascript:void(0)" onclick="changemarker(5);"><img src="img/marker5.png"></a></div>
+
+                    <div id="selectmarker6" class="marker-style"><a href="javascript:void(0)" onclick="changemarker(6);"><img src="img/marker6.png"></a></div>
+
+                    <div id="selectmarker7" class="marker-style"><a href="javascript:void(0)" onclick="changemarker(7);"><img src="img/marker7.png"></a></div>
+
+                    <div id="selectmarker8" class="marker-style"><a href="javascript:void(0)" onclick="changemarker(8);"><img src="img/marker8.png"></a></div>
+
+                    <div id="selectmarker9" class="marker-style"><a href="javascript:void(0)" onclick="changemarker(9);"><img src="img/marker9.png"></a></div>
+
+                    <div class="filters">
+
+                        <a href="javascript:void(0)" onclick="changefilter(0);">
+
+                            <div id="filter0" class="">显示自定义标记点</div>
+
+                        </a>
+
+                        <a href="javascript:void(0)" onclick="changefilter(1);">
+
+                            <div id="filter1" class="">显示那美坎印记</div>
+
+                        </a>
+
+                        <a href="javascript:void(0)" onclick="changefilter(2);">
+
+                            <div id="filter2" class="">显示瞬间移动传送点</div>
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </td>
+
+    </tr>
+
+</table>
+
+<div class="author-footer-note">
+
+ <b>作者：<br>
+    
+    點點點丶<br><br>
+
+     调整了什么：<br>
+
+     <b style="color:#ffaa0c;">在区域地图里补充了武道寺专属区域；<br>
+
+     在世界大地图上补充了法郎沙漠南部；<br>
+
+     将全部文字翻译为游戏官方的中文文本；<br>
+
+     将原生php语言脚本完全修改为html语言脚本，以降低编辑门槛；</b><br><br>
+
+     其他：<br>
+
+     地图根据Citrinate（西特里纳特）2019年公开的源码修改而成，大多服务器都在使用该源码<br>
+
+     该工具由国人流派10086内部修改并使用，目前开源给所有国人使用，希望该地图能帮助到你</b><br><br>
+
+</div>
+</div> 
+</div>
+<script type="text/javascript" src="js/map.js"></script>
+<script>
+
+    document.addEventListener("DOMContentLoaded", pageBootstrap);
+
+</script>
+</body>
+</html>
