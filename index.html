@@ -1,852 +1,1371 @@
 <!DOCTYPE html>
-
 <html lang="zh-CN">
-
 <head>
-
     <meta charset="utf-8">
-
     <title>龙珠交互式地图</title>
-
     <meta name="description" content="DBO交互式地图工具">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <style>
+    /* ========== 原 style.css 内容（已纠正图片相对路径） ========== */
+    body, html { font: 10pt Arial; color: #000000; margin: 0px; padding: 0px; }
+    body a { color: #20455a; }
+    table { border-spacing: 0px; border-collapse: collapse; }
+    table tr td, table tr th { padding: 0px; }
+    img { border: 0px; }
+    a { border: 0px; }
+    .titlebar { width: 100%; background: url(img/title_bar_background.png); color: #ffffff; font-size: 11pt; font-weight: bold; text-align: left; border-radius: 8px; }
+    .titlebar a{ color: #ffffff; text-decoration: none; }
+    .titlebar-subtitle { float: right; font-size: 9pt; padding-top: 3px; font-weight: normal; font-style: italic; }
+    .titlebar-subtitle a{ color: #ffffff; text-decoration: none; }
+    .titlebat-subtitle a:hover{ text-decoration: underline; }
+    .titlebar-topleft { height: 7px; width: 7px; background: url(img/title_bar_topleft.png); border-top-left-radius: 8px;  }
+    .titlebar-top { height: 7px; background: url(img/title_bar_top.png) repeat-x; }
+    .titlebar-topright { height: 7px; width: 7px; background: url(img/title_bar_topright.png);  border-top-right-radius: 8px;  }
+    .titlebar-left { height: 7px; background: url(img/title_bar_left.png) repeat-y; }
+    .titlebar-right { height: 7px; background: url(img/title_bar_right.png) repeat-y; }
+    .titlebar-bottomleft { height: 7px; width: 7px; background: url(img/title_bar_bottomleft.png); border-bottom-left-radius: 8px;  }
+    .titlebar-bottom { height: 7px; background: url(img/title_bar_bottom.png) repeat-x; }
+    .titlebar-bottomright { height: 7px; width: 7px; background: url(img/title_bar_bottomright.png); border-bottom-right-radius: 8px; }
+    .titlebar-text { padding: 12px 4px 20px 4px; line-height: 130%; text-align: left; }
+    .lightblue-button-top-left { width: 8px; background: url(img/lightblue_button_top_left.png); }
+    .lightblue-button-top { text-align: center; padding-top: 7px; color: #fff; font-size: 14pt; background: url(img/lightblue_button_top.png) repeat; }
+    .lightblue-button-top-right { width: 8px; background: url(img/lightblue_button_top_right.png); }
+    .lightblue-button-bottom-left { width: 8px; height: 9px; background: url(img/lightblue_button_bottom_left.png); }
+    .lightblue-button-bottom {  height: 9px; background: url(img/lightblue_button_bottom.png) repeat; }
+    .lightblue-button-bottom-right { width: 8px; height: 9px; background: url(img/lightblue_button_bottom_right.png); }
+    .small-button { float: left; padding-right: 8px; }
+    .blue-background { padding: 7px; background: url(img/title_bar_background.png); border: 2px solid #51555D; }
+    .blue-bottom-left { width: 8px; height: 32px; background: url(img/small_blue_button_left.png); }
+    .blue-bottom-right { width: 8px; height: 32px; background: url(img/small_blue_button_right.png); }
+    .blue-bottom-center { height: 32px; background: url(img/small_blue_button_center.png) repeat; }
+    .highlighted .blue-bottom-left { background: url(img/small_blue_button_left_highlighted.png) !important; }
+    .highlighted .blue-bottom-right { background: url(img/small_blue_button_right_highlighted.png) !important; }
+    .highlighted .blue-bottom-center { background: url(img/small_blue_button_center_highlighted.png) !important; }
+
+    /* ==========小地图圆角裁剪========== */
+    .map-enlarged {
+        margin-bottom: 8px;
+        border-radius:6px;
+        overflow:hidden;
+    }
+    .map-enlarged-image { height: 128px; width: 128px; }
+
+    /* ==========大地图容器========== */
+    .bigmap-background {
+        height: 441px;
+        width: 532px;
+        padding: 12px 4px 0px 12px;
+        background: url(img/mapbackground.png) no-repeat;
+        border-radius:6px;
+        overflow:hidden;
+    }
+
+    .map-gradient { height: 405px; width: 402px; position: absolute; top: 0px; left: 0px; background: url(img/mapbackground_gradient.png) no-repeat; }
+    .map-section { vertical-align: top; padding-right: 16px; }
+    .map-section a{ text-decoration: underline; }
+    .map-section td{ padding-bottom: 8px; }
+    .map-title { vertical-align: top; width: 12%; }
+    .map-subsection { width: 100%; font-weight: normal; font-size: 9pt; }
+    .map-subsection span{ padding-right: 8px; }
+    .map-enlarged-background { background: url(img/minimap_background_square.png); height: 384px; width: 384px; }
+    .map-enlarged-background-gradient { position: absolute; top: 0px; left: 0px; background: url(img/minimap_background_square_gradient.png); height: 384px; width: 384px; }
+    .instructions { width: 130px; padding: 7px 12px 0px 0px; float: right; color: #fff; font-size: 9pt;  }
+    .release { width: 100%; font-size: 8pt; color: #222; padding-top: 8px; }
+
+    /* ==========子选项栏，自动换行与竖线========== */
+    .map-selection {
+        clear: both;
+        border-radius: 3px;
+        border: 1px solid #b4b5b6;
+        background: #333435;
+        font-weight: normal;
+        font-size: 9pt;
+        padding: 8px;
+        margin: 42px 1px 1px 1px;
+        width:100%;
+        box-sizing: border-box;
+    }
+    .map-selection a { text-decoration: underline; color:#fff; }
+    .map-selection span {
+        padding: 2px 5px 2px 5px;
+        white-space:normal;
+        display: inline-block;
+        margin:2px 0;
+    }
+    .map-selection span:not(:last-child)::after{
+        content:"|";
+        margin-left:6px;
+        color:#cccccc;
+    }
+
+    .embed-map-link { padding-top: 18px; }
+    .marker-style { float: left; margin: 4px 3px 0px 0px; }
+    .marker-style-selected { float: left; margin: 4px 3px 0px 0px; padding-bottom: 2px; background: url(img/75p_white.png) bottom repeat-x; }
+    .filters { clear: both; padding-top: 20px; z-index: 2; }
+    .filters a { text-decoration: none; color: #fff; }
+    .filter-off { background: url(img/checkbox_unchecked.png) right no-repeat; }
+    .filter-on { background: url(img/checkbox_checked.png) right no-repeat; }
+    .clear-btn { color: #ff6666 !important; font-weight: bold; margin: 4px 0; display: block; }
+    .clear-btn:hover { text-decoration: underline !important; color: #ff4d4d !important; }
+    .small-button { font-weight: normal; }
+    #mapbox { -moz-box-shadow: 0 0 5px #000; -webkit-box-shadow: 0 0 5px #000; box-shadow: 0 0 5px #000; -moz-border-radius: 3px; border-radius: 3px; }
+    #bigmap { height: 100%; width: 390px; }
+    .active-map-selection a { font-weight: bold; color: #88cbd8; }
+    .left-panel-title {
+        position: relative;
+        width:384px;
+        height:24px;
+        line-height:30px;
+        background:url(img/small_blue_button_center.png) repeat-x;
+        color:#ffffff;
+        font-size:10pt;
+        font-weight:bold;
+        text-align:center;
+        box-sizing:border-box;
+        border-radius:5px 5px 0 0;
+        margin-bottom:4px;
+    }
+
+    /* ========== 路径与标记备注样式 ========== */
+    .path-label, .marker-label {
+        position: absolute;
+        color: #ffff00;
+        font-size: 11px;
+        font-weight: bold;
+        text-shadow: 1px 1px 2px #000, -1px -1px 2px #000, 1px -1px 2px #000, -1px 1px 2px #000;
+        white-space: nowrap;
+        pointer-events: none;
+        transform: translate(-50%, -50%);
+        margin-top: -6px;
+        z-index: 10;
+    }
+
+    /* ========== 页面深色大容器样式 ========== */
+    body,html {
+        width:auto !important;
+        margin:0 !important;
+        padding:12px !important;
+    }
+    body{
+        display:flex !important;
+        justify-content:center !important;
+        background-color:#e6e6e6 !important;
+    }
+    .page-wrap {
+        flex-shrink: 0;
+    }
+    .main-wrapper {
+        background:#2c3038;
+        border:2px solid #51555D;
+        border-radius:10px;
+        padding:14px;
+    }
+    .main-wrapper > span {
+        color:#eeeeee !important;
+        font-size:10pt;
+    }
+    .titlebar {
+        margin-bottom:10px !important;
+    }
+    .map-selection {
+        margin:0 0 12px 0 !important;
+    }
+    .map-selection span {
+         white-space:normal !important;
+         display:inline-block !important;
+         padding:2px 6px !important;
+         margin:2px 0 !important;
+    }
+    .map-selection span:not(:last-child)::after{
+        content:"|";
+        margin-left:6px;
+        color:#cccccc;
+    }
+    .map-main-table td:first-child {
+         vertical-align: middle !important;
+    }
+    .map-enlarged {
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        border-radius:6px;
+        overflow:hidden !important;
+    }
+    .bigmap-background {
+        border-radius:6px;
+        overflow:hidden !important;
+    }
+    .author-footer-note {
+         margin-top:0px;
+         text-align:center;
+         color:#cccccc !important;
+         font-size:14px;
+    }
+    </style>
 
     <script type="text/javascript">
-
-        // =====================【关键改动：分组改为对象，每个分组绑定固定英文slug，不再从中文名字生成ID】=====================
-
+        // =====================【页面配置与逻辑初始化】=====================
         const _default_map = "world";
-
         const _map_groups = [
-
             {
-
                 slug:"world-map",
-
                 label:"世界地图",
-
                 maps:["world"]
-
             },
-
             {
-
                 slug:"world-zones",
-
                 label:"区域地图",
-
                 maps:[
-
                     "fearland", "franfran-desert-north", "karin-forest","papaya-island", 
-
                     "mushroom-rocks-north", "mushroom-rocks-south", "porunga-rocks-north","porunga-rocks-south", 
-
                     "west-city", "westlands", "yahhoi-east", "yahhoi-west",
-
                     "world-martial-arts-tournament-city", "guild-dojo", "kame-house",
-
                 ]
-
             },
-
             {
-
                 slug:"dungeons",
-
                 label:"大世界副本",
-
                 maps:[
-
                     "dragon-cave", "underground-waterway", "yahhoi-fort", "red-ribbon-army-hq-ruins", "red-ribbon-army-underground-base-ruins", "fuel-research-plant",
-
                     "pilafs-museum", "red-pants-army-hq", "red-pants-armys-robotics-facility", "secret-waterfall-cave", "hoi-poi-stone-mine", "pilafs-castle",
-
                 ]
-
             },
-
             {
-
                 slug:"tmqs",
-
                 label:"时光机副本（TMQ）",
-
                 maps:["tmq-1", "tmq-2-part-1","tmq-2-part-3", "tmq-3-day", "tmq-3-night", "tmq-4", "tmq-5", "tmq-6"]
-
             },
-
             {
-
                 slug:"tlqs",
-
                 label:"时空裂缝（TLQ）",
-
                 maps:["tlq-1", "tlq-2", "tlq-3"]
-
             }
-
         ];
 
-
-
         const _valid_maps = {
-
             "world": {"display_name":"世界","map":"world"},
-
             "fearland": {"display_name":"奥索罗岛","map":"fearland"},
-
             "westlands": {"display_name":"维斯特兰","map":"westlands"},
-
             "mushroom-rocks-north": {"display_name":"蘑菇巨石北部","map":"mushroom_rocks_north"},
-
             "mushroom-rocks-south": {"display_name":"蘑菇巨石南部","map":"mushroom_rocks_south"},
-
             "yahhoi-east": {"display_name":"东雅荷","map":"yahhoi_east"},
-
             "yahhoi-west": {"display_name":"西雅荷","map":"yahhoi_west"},
-
             "porunga-rocks-north": {"display_name":"波路亚巨石北部","map":"porunga_rocks_north"},
-
             "porunga-rocks-south": {"display_name":"波路亚巨石南部","map":"porunga_rocks_south"},
-
             "franfran-desert-north": {"display_name":"法朗沙漠北部","map":"franfran_desert_north"},
-
             "karin-forest": {"display_name":"凯里森林","map":"karin_forest"},
-
             "west-city": {"display_name":"西都","map":"west_city"},
-
             "world-martial-arts-tournament-city":{"display_name":"武道寺","map":"world_martial_arts_tournament_city"},
-
             "kame-house": {"display_name":"龟仙屋","map":"kame_house"},
-
             "papaya-island": {"display_name":"番木瓜诸岛","map":"papaya_island"},
-
             "guild-dojo": {"display_name":"流派道场","map":"guild_dojo"},
-
             "yahhoi-fort": {"display_name":"雅荷要塞","map":"yahhoi_fort"},
-
             "dragon-cave": {"display_name":"神龙峡谷","map":"dragon_cave"},
-
             "underground-waterway": {"display_name":"噗通下水道","map":"underground_waterway"},
-
             "red-ribbon-army-underground-base-ruins": {"display_name":"（UD1）红领巾军地下基地废墟","map":"red_ribbon_army_underground_base_ruins"},
-
             "red-ribbon-army-hq-ruins": {"display_name":"红领巾军总部废墟","map":"red_ribbon_army_hq_ruins"},
-
             "tmq-1": {"display_name":"TMQ 1","map":"tmq_1"},
-
             "tmq-2-part-1": {"display_name":"TMQ 2（第1部分）","map":"tmq_2_part_1"},
-
             "tmq-2-part-2": {"display_name":"TMQ 2（第2部分）","map":"kame_house"},
-
             "tmq-2-part-3": {"display_name":"TMQ 2（第3部分）","map":"tmq_1"},
-
             "tmq-3-day": {"display_name":"TMQ 3（白天）","map":"tmq_3_day"},
-
             "tmq-3-night": {"display_name":"TMQ 3（夜晚）","map":"tmq_3_night"},
-
             "tmq-4": {"display_name":"TMQ 4","map":"tmq_4"},
-
             "tmq-5": {"display_name":"TMQ 5","map":"tmq_5"},
-
             "tmq-6": {"display_name":"TMQ 6","map":"tmq_6"},
-
             "tlq-1": {"display_name":"TLQ 1","map":"tlq_1"},
-
             "tlq-2": {"display_name":"TLQ 2","map":"tlq_2"},
-
             "tlq-3": {"display_name":"TLQ 3","map":"tlq_3"},
-
             "fuel-research-plant": {"display_name":"燃料研究所（无官方图）","map":null},
-
             "hoi-poi-stone-mine": {"display_name":"霍伊波伊石矿（无官方图）","map":null},
-
             "pilafs-castle": {"display_name":"皮拉夫城堡（无官方图）","map":null},
-
             "pilafs-museum": {"display_name":"皮拉夫博物馆（无官方图）","map":null},
-
             "red-pants-army-hq": {"display_name":"红领巾军总部（无官方图）","map":null},
-
             "red-pants-armys-robotics-facility": {"display_name":"红领巾军机器人工厂（无官方图）","map":null},
-
             "secret-waterfall-cave": {"display_name":"隐秘瀑布洞窟（无官方图）","map":null}
-
         };
 
-        // =====================重写switchView：全部使用预先定义的slug，只打开当前点击分组=====================
+        function safeDecode(str) {
+            try {
+                return decodeURIComponent(str);
+            } catch(e) {
+                return str;
+            }
+        }
 
         function switchView(activeSlug){
-
             for(const group of _map_groups){
-
                 const btn = document.getElementById(group.slug + "-button");
-
                 const sel = document.getElementById(group.slug + "-selections");
-
                 if(!btn || !sel) continue;
-
                 if(group.slug === activeSlug){
-
                     btn.classList.add("highlighted");
-
                     sel.style.display = "block";
-
                 }else{
-
                     btn.classList.remove("highlighted");
-
                     sel.style.display = "none";
-
                 }
-
             }
-
         }
 
-
+        // 全局路径标记数据存储: [{x: number, y: number, note: string}]
+        var pathMarkers = [];
+        var pathDrawMode = 0; // 0:关闭, 1:开启
 
         function parseUrlParams(){
-
             const params = new URLSearchParams(window.location.search);
-
             let map = _default_map;
-
             const getMap = params.get("map");
-
             if(getMap && _valid_maps[getMap] && _valid_maps[getMap]["map"]){
-
                 map = getMap;
-
             }
 
-
-
+            // 解析 markers [x, y, type, delState, note]
             let markers = [];
-
             const markerStr = params.get("markers");
-
-            if(markerStr && !isNaN(markerStr) && (markerStr.length %11 ===0)){
-
-                for(let i=0;i<markerStr.length;i+=11){
-
-                    markers.push([
-
-                        parseInt(markerStr.substring(i+1,i+6)),
-
-                        parseInt(markerStr.substring(i+6,i+11)),
-
-                        parseInt(markerStr[i]),
-
-                        0
-
-                    ]);
-
+            if(markerStr) {
+                const items = markerStr.split(";");
+                for(let item of items) {
+                    if(!item) continue;
+                    const parts = item.split(",");
+                    if(parts.length >= 3) {
+                        const mtype = parseInt(parts[0]);
+                        const mx = parseInt(parts[1]);
+                        const my = parseInt(parts[2]);
+                        const mnote = parts[3] ? safeDecode(parts[3]) : "";
+                        if(!isNaN(mtype) && !isNaN(mx) && !isNaN(my)) {
+                            markers.push([mx, my, mtype, 0, mnote]);
+                        }
+                    } else if(parts.length === 1 && item.length % 11 === 0) { // 兼容旧版11位压缩格式
+                        for(let i=0; i<item.length; i+=11){
+                            markers.push([
+                                parseInt(item.substring(i+1,i+6)),
+                                parseInt(item.substring(i+6,i+11)),
+                                parseInt(item[i]),
+                                0,
+                                ""
+                            ]);
+                        }
+                    }
                 }
-
             }
 
-
+            // 解析 URL 中的路径数据 paths
+            pathMarkers = [];
+            const pathsStr = params.get("paths");
+            if(pathsStr) {
+                try {
+                    const rawItems = pathsStr.split(";");
+                    for(let item of rawItems) {
+                        if(!item) continue;
+                        const parts = item.split(",");
+                        if(parts.length >= 2) {
+                            const px = parseInt(parts[0]);
+                            const py = parseInt(parts[1]);
+                            const pnote = parts[2] ? safeDecode(parts[2]) : "";
+                            if(!isNaN(px) && !isNaN(py)) {
+                                pathMarkers.push({x: px, y: py, note: pnote});
+                            }
+                        }
+                    }
+                } catch(e) {}
+            }
 
             let coordinate = 0;
-
             const coordStr = params.get("coord");
-
             if(coordStr && !isNaN(coordStr)) coordinate = Number(coordStr);
 
-
-
             let filters;
-
             const filterStr = params.get("filter");
-
             if(filterStr && filterStr.length===3 && !isNaN(filterStr)){
-
                 const tmp = [];
-
                 for(let i=0;i<3;i++){
-
                     const c = filterStr[i];
-
                     if(c==="0"||c==="1") tmp.push(parseInt(c));
-
                 }
-
                 if(tmp.length===3) filters = tmp;
-
             }
-
             if(!filters){
-
                 filters = (map==="world") ? [1,0,0] : [1,1,1];
-
             }
-
-
 
             let active_group = null;
-
             for(const g of _map_groups){
-
                 if(g.maps.length>1){
-
                     if(g.maps.includes(map)){
-
                         active_group = g.slug;
-
                         break;
-
                     }else if(active_group===null){
-
                         active_group = g.slug;
-
                     }
-
                 }
-
             }
-
             return {map, markers, coordinate, filters, active_group};
-
         }
-
-
 
         let marker, filter, current, mapnum, mapname, active_group;
-
         const base_url = window.location.pathname;
 
-
-
         function loadMapJs(mapJsName){
-
             return new Promise((resolve)=>{
-
                 const s = document.createElement('script');
-
                 s.src = `js/maps/${mapJsName}.js`;
-
                 s.onload = resolve;
-
+                s.onerror = resolve; // 容错：即使脚本文件丢失也不阻塞页面初始化
                 document.head.appendChild(s);
-
             });
-
         }
-
-
-
-        // =====================渲染导航UI，外层增加max-width限制容器，实现自动换行=====================
 
         function buildMapSelectorUI(activeSlug, currMap){
-
             let html = "";
-
             for(const group of _map_groups){
-
                 if(group.maps.length ===1){
-
                     const link = `${base_url}?map=${group.maps[0]}`;
-
                     html += `
-
                     <a href="${link}">
-
                         <div class="small-button" onClick="window.location.href='${link}';">
-
                             <table>
-
                                 <tr>
-
                                     <td class="blue-bottom-left"></td>
-
                                     <td class="blue-bottom-center">${group.label}</td>
-
                                     <td class="blue-bottom-right"></td>
-
                                 </tr>
-
                             </table>
-
                         </div>
-
                     </a>`;
-
                 }else{
-
                     const isHighlight = (activeSlug===group.slug) ? "highlighted" : "";
-
                     html += `
-
                     <a href="javascript:switchView('${group.slug}');">
-
                         <div id="${group.slug}-button" class="small-button ${isHighlight}" onClick="switchView('${group.slug}');">
-
                             <table>
-
                                 <tr>
-
                                     <td class="blue-bottom-left"></td>
-
                                     <td class="blue-bottom-center">${group.label}</td>
-
                                     <td class="blue-bottom-right"></td>
-
                                 </tr>
-
                             </table>
-
                         </div>
-
                     </a>`;
-
                 }
-
             }
-
             for(const group of _map_groups){
-
                 if(group.maps.length>1){
-
                     const showStyle = (activeSlug!==group.slug) ? 'style="display:none"' : "";
-
-                    // 外层增加限制最大宽度的div，强制约束宽度，实现inline‑block自动换行
-
                     html += `<div style="max-width:934px;box-sizing:border-box;">`;
-
                     html += `<div class="map-selection" id="${group.slug}-selections" ${showStyle}>`;
-
                     for(let k=0;k<group.maps.length;k++){
-
                         const item = group.maps[k];
-
                         const isActive = (currMap===item) ? 'class="active-map-selection"' : "";
-
                         const dispName = _valid_maps[item]["display_name"];
-
                         const mapVal = _valid_maps[item]["map"];
-
                         if(mapVal){
-
                             html += `<span ${isActive}><a href="${base_url}?map=${item}">${dispName}</a></span>`;
-
                         }else{
-
                             html += `<span ${isActive}>${dispName}</span>`;
-
                         }
-
                     }
-
-                    html += "</div></div>"; // 闭合两层div
-
+                    html += "</div></div>";
                 }
-
             }
-
             document.getElementById("map-selector-container").innerHTML = html;
-
         }
 
-
-
         async function pageBootstrap(){
-
             const params = parseUrlParams();
-
             mapname = params.map;
-
             marker = params.markers;
-
             filter = params.filters;
-
             current = params.coordinate;
-
             active_group = params.active_group;
-
             mapnum = _valid_maps[mapname]["map"];
-
-
 
             buildMapSelectorUI(active_group, mapname);
 
-
-
             document.getElementById("filter0").className = filter[0] ? "filter-on" : "filter-off";
-
             document.getElementById("filter1").className = filter[1] ? "filter-on" : "filter-off";
-
             document.getElementById("filter2").className = filter[2] ? "filter-on" : "filter-off";
-
-
+            document.getElementById("filterPath").className = pathDrawMode ? "filter-on" : "filter-off";
 
             if(mapnum){
-
                 document.getElementById("bigmap").style.background = `url(img/map/${mapnum}.jpg) no-repeat`;
-
             }
-
-
 
             if(mapnum){
-
                 await loadMapJs(mapnum);
-
             }
-
             init();
-
         }
 
+        // =====================【 map.js 核心交互逻辑】=====================
+        var map = [];
+        var bigmap;
+        var smallmap;
+        var mapbox;
+        var markerssmall;
+        var markersbig;
+        var notes;
+        var link, link2; // 修复：增加 link2 变量声明，防止未定义报错
+        var markertype = 0;
+        var add = 0;
+        var markernum = 0;
+        var url = "";
+        var maplists = [];
+        var maplistselect = [];
+        var holdup = 0;
+        var keydown = 0;
+        var realcurrent = 0;
+        var tempminx = 0;
+        var tempminy = 0;
+        var tempmaxx = 0;
+        var tempmaxy = 0;
+        var site_url = top.location.href.split('?')[0];
+        var frame_url = window.location.href.split('?')[0];
+
+        function setRealcurrent() {
+            tempcurrent = current;
+            row = Math.floor(tempcurrent/width);
+            tempcurrent = tempcurrent % width;
+            realcurrent = initial + tempcurrent + row * realwidth;
+        }
+
+        function movemapbox() {
+            mapbox.style.top = (parseInt((Math.ceil(current/width) - 1) * (mapboxheight/3) + mapy)) + "px";
+            mapbox.style.left = (parseInt(((current % width) - 1) * (mapboxheight/3) + mapx)) + "px";
+        }
+            
+        function movemap(up, down, left, right) {
+            if(mapbox.style.display == "inline"){
+                if(up == 2 && current <= width * 2) up = 1;
+                if(right == 2 && current % width == width - 2) right = 1;
+                if(left == 2 && current % width == 2) left = 1;
+                if(down == 2 && current >= max - width * 3) down = 1;
+
+                if(!(up && current <= width) 
+                    && !(right && current % width == width - 2)
+                    && !(left && current % width == 1)
+                    && !(down && current >= max - width * 3)){
+                    
+                    current = current - up * width + right - left + down * width;
+                    
+                    setRealcurrent();
+                    map[0].style.backgroundImage = "url(img/minimap/" + mapnum + "/" + (realcurrent) + ".jpg)";
+                    map[1].style.backgroundImage = "url(img/minimap/" + mapnum + "/" + (realcurrent+1) + ".jpg)";
+                    map[2].style.backgroundImage = "url(img/minimap/" + mapnum + "/" + (realcurrent+2) + ".jpg)";
+                    map[3].style.backgroundImage = "url(img/minimap/" + mapnum + "/" + (realcurrent+realwidth) + ".jpg)";
+                    map[4].style.backgroundImage = "url(img/minimap/" + mapnum + "/" + (realcurrent+realwidth+1) + ".jpg)";
+                    map[5].style.backgroundImage = "url(img/minimap/" + mapnum + "/" + (realcurrent+realwidth+2) + ".jpg)";
+                    map[6].style.backgroundImage = "url(img/minimap/" + mapnum + "/" + (realcurrent+realwidth*2) + ".jpg)";
+                    map[7].style.backgroundImage = "url(img/minimap/" + mapnum + "/" + (realcurrent+realwidth*2+1) + ".jpg)";
+                    map[8].style.backgroundImage = "url(img/minimap/" + mapnum + "/" + (realcurrent+realwidth*2+2) + ".jpg)";
+                    
+                    movemapbox();
+                    updateurl(1);
+                    refreshmarkers(0);
+                }
+            }
+        }
+            
+        function checkKey(e) {
+            if(keydown == 0) {
+                var key = e.keyCode || e.which;
+                key = String.fromCharCode(key);
+                if(key == "w") movemap(1,0,0,0);
+                else if(key == "a") movemap(0,0,1,0);
+                else if(key == "s") movemap(0,1,0,0);
+                else if(key == "d") movemap(0,0,0,1);
+                else if(key == "0") changemarker(0);
+                else if(key == "1") changemarker(1);
+                else if(key == "2") changemarker(2);
+                else if(key == "3") changemarker(3);
+                else if(key == "4") changemarker(4);
+                else if(key == "5") changemarker(5);
+                else if(key == "6") changemarker(6);
+                else if(key == "7") changemarker(7);
+                else if(key == "8") changemarker(8);
+                else if(key == "9") changemarker(9);
+                keydown = 1;
+            }
+        }
+            
+        function jumpmap(event) {   
+            pos = findPos(bigmap);
+            if (event.pageX === undefined) {
+                posx = event.clientX + document.documentElement.scrollLeft - pos[0];
+                posy = event.clientY + document.documentElement.scrollTop - pos[1];
+            } else {
+                posx = event.pageX - pos[0];
+                posy = event.pageY - pos[1];
+            }
+            
+            if(posx >= mapx && posy >= mapy && posx < (mapmaxx + mapx) && posy <= (mapmaxy + mapy)) {
+                posx -= mapx;
+                posy -= mapy;
+                current = (parseInt(posy/mapmaxy * max/width) * width + parseInt(posx/mapmaxx * width - 1)) - width + 1;
+                if(current % width == width - 1) current -= 1;
+                else if(current % width == 0) current += 1;
+                while(current > max - (width * 2)) current -= width;
+                while(current < 0) current += width;
+                
+                setRealcurrent();
+                map[0].style.backgroundImage = "url(img/minimap/" + mapnum + "/" + (realcurrent) + ".jpg)";
+                map[1].style.backgroundImage = "url(img/minimap/" + mapnum + "/" + (realcurrent+1) + ".jpg)";
+                map[2].style.backgroundImage = "url(img/minimap/" + mapnum + "/" + (realcurrent+2) + ".jpg)";
+                map[3].style.backgroundImage = "url(img/minimap/" + mapnum + "/" + (realcurrent+realwidth) + ".jpg)";
+                map[4].style.backgroundImage = "url(img/minimap/" + mapnum + "/" + (realcurrent+realwidth+1) + ".jpg)";
+                map[5].style.backgroundImage = "url(img/minimap/" + mapnum + "/" + (realcurrent+realwidth+2) + ".jpg)";
+                map[6].style.backgroundImage = "url(img/minimap/" + mapnum + "/" + (realcurrent+realwidth*2) + ".jpg)";
+                map[7].style.backgroundImage = "url(img/minimap/" + mapnum + "/" + (realcurrent+realwidth*2+1) + ".jpg)";
+                map[8].style.backgroundImage = "url(img/minimap/" + mapnum + "/" + (realcurrent+realwidth*2+2) + ".jpg)";
+                
+                movemapbox();
+                updateurl(1);
+                refreshmarkers(0);
+            }
+        }
+            
+        function findPos(obj) {
+            var curleft = curtop = 0;
+            if (obj.offsetParent) {
+                do {
+                    curleft += obj.offsetLeft;
+                    curtop += obj.offsetTop;
+                } while (obj = obj.offsetParent);
+                return [curleft,curtop];
+            }
+            return [0, 0];
+        }
+            
+        function addmarker(event, isBigMap) {
+            // 如果开启了自定义路径绘制模式，走路径逻辑（绝对隔离）
+            if(pathDrawMode) {
+                handlePathRightClick(event, isBigMap);
+                return;
+            }
+
+            var targetElem = event.target || event.srcElement;
+            if(add && filter[0] && markernum != 25 && targetElem.id != "mapbox") {
+                let targetX = 0, targetY = 0;
+
+                if(isBigMap) {
+                    pos = findPos(bigmap);
+                    if (event.pageX === undefined) {
+                        posx = event.clientX + document.documentElement.scrollLeft - pos[0];
+                        posy = event.clientY + document.documentElement.scrollTop - pos[1];
+                    } else {
+                        posx = event.pageX - pos[0];
+                        posy = event.pageY - pos[1];
+                    }
+                    
+                    if(posx >= mapx && posy >= mapy && posx < (mapmaxx + mapx) && posy <= (mapmaxy + mapy)) {
+                        posx -= mapx;
+                        posy -= mapy;
+                        targetX = parseInt(posx/mapmaxx * width * 128) + 1;
+                        targetY = parseInt(posy/mapmaxy * max/width * 128) + 1;
+                    } else return;
+                } else {
+                    pos = findPos(smallmap);
+                    if (event.pageX === undefined) {
+                        posx = event.clientX + document.documentElement.scrollLeft - pos[0];
+                        posy = event.clientY + document.documentElement.scrollTop - pos[1];
+                    } else {
+                        posx = event.pageX - pos[0];
+                        posy = event.pageY - pos[1];
+                    }
+                    
+                    if(posx > 3 && posx <= 379 && posy > 6 && posy <= 376) {
+                        targetX = posx + ((current % width) - 1) * 128;
+                        targetY = posy + (Math.ceil(current / width) - 1) * 128;
+                    } else return;
+                }
+
+                // 弹出对话框提示输入名称
+                let noteInput = prompt("请输入自定义标记点的名称（留空则不显示文本）：", "");
+                if(noteInput !== null) {
+                    marker[marker.length] = [targetX, targetY, markertype, 0, noteInput.trim()];
+                    markernum++;
+                    refreshmarkers(1);
+                    updateurl(1);
+                }
+            }
+            else if(markernum == 25) alert("You've reached the maximum number of markers you can place on the map.");
+            else add = 1;
+        }
+
+        // 修改/编辑自定义标记点的名称
+        function editMarkerNote(idx) {
+            if(!marker[idx]) return;
+            let oldNote = marker[idx][4] || "";
+            let newNote = prompt("修改自定义标记点的名称：", oldNote);
+            if(newNote !== null) {
+                marker[idx][4] = newNote.trim();
+                refreshmarkers(1);
+                updateurl(1);
+            }
+        }
+
+        // =====================【自定义路径绘制核心逻辑】=====================
+        function togglePathDrawMode() {
+            pathDrawMode = pathDrawMode ? 0 : 1;
+            document.getElementById("filterPath").className = pathDrawMode ? "filter-on" : "filter-off";
+
+            if(pathDrawMode) {
+                // 开启路径绘制时：自动清除所有自定义标记点，并关闭自定义标记点勾选框
+                clearAllMarkersSilent();
+                filter[0] = 0;
+                document.getElementById("filter0").className = "filter-off";
+            }
+            refreshmarkers(1);
+            updateurl(1);
+        }
+
+        function handlePathRightClick(event, isBigMap) {
+            let markerx = 0, markery = 0;
+
+            if(isBigMap) {
+                let pos = findPos(bigmap);
+                let posx = (event.pageX !== undefined) ? (event.pageX - pos[0]) : (event.clientX + document.documentElement.scrollLeft - pos[0]);
+                let posy = (event.pageY !== undefined) ? (event.pageY - pos[1]) : (event.clientY + document.documentElement.scrollTop - pos[1]);
+                if(posx >= mapx && posy >= mapy && posx < (mapmaxx + mapx) && posy <= (mapmaxy + mapy)) {
+                    posx -= mapx;
+                    posy -= mapy;
+                    markerx = parseInt(posx/mapmaxx * width * 128) + 1;
+                    markery = parseInt(posy/mapmaxy * max/width * 128) + 1;
+                } else return;
+            } else {
+                let pos = findPos(smallmap);
+                let posx = (event.pageX !== undefined) ? (event.pageX - pos[0]) : (event.clientX + document.documentElement.scrollLeft - pos[0]);
+                let posy = (event.pageY !== undefined) ? (event.pageY - pos[1]) : (event.clientY + document.documentElement.scrollTop - pos[1]);
+                if(posx > 3 && posx <= 379 && posy > 6 && posy <= 376) {
+                    markerx = posx + ((current % width) - 1) * 128;
+                    markery = posy + (Math.ceil(current / width) - 1) * 128;
+                } else return;
+            }
+
+            // 判断是否点击了已有的路径点 (判定容差为 15px)
+            let existingIdx = -1;
+            for(let i = 0; i < pathMarkers.length; i++) {
+                let dist = Math.hypot(pathMarkers[i].x - markerx, pathMarkers[i].y - markery);
+                if(dist <= 15) {
+                    existingIdx = i;
+                    break;
+                }
+            }
+
+            if(existingIdx !== -1) {
+                // 对已有路径点右键：修改备注
+                let oldNote = pathMarkers[existingIdx].note || "";
+                let newNote = prompt("修改该路径点的备注名称：", oldNote);
+                if(newNote !== null) {
+                    pathMarkers[existingIdx].note = newNote.trim();
+                    refreshmarkers(1);
+                    updateurl(1);
+                }
+            } else {
+                // 点击空白处：新增路径点
+                let noteInput = prompt("请输入新路径点的备注名称（留空则不显示文本）：", "");
+                if(noteInput !== null) {
+                    pathMarkers.push({
+                        x: markerx,
+                        y: markery,
+                        note: noteInput.trim()
+                    });
+                    refreshmarkers(1);
+                    updateurl(1);
+                }
+            }
+        }
+
+        function clearAllPathMarkers() {
+            if(!pathMarkers || pathMarkers.length === 0) return;
+            pathMarkers = [];
+            refreshmarkers(1);
+            updateurl(1);
+        }
+
+        // 渲染路径线段与备注
+        function drawPathMarkers(all) {
+            let smallCanvas = document.getElementById("pathCanvasSmall");
+            let bigCanvas = document.getElementById("pathCanvasBig");
+            let smallContainer = document.getElementById("pathLabelsSmall");
+            let bigContainer = document.getElementById("pathLabelsBig");
+
+            if(!smallCanvas || !bigCanvas) return;
+
+            let sCtx = smallCanvas.getContext("2d");
+            let bCtx = bigCanvas.getContext("2d");
+
+            sCtx.clearRect(0, 0, smallCanvas.width, smallCanvas.height);
+            smallContainer.innerHTML = "";
+            if(all) {
+                bCtx.clearRect(0, 0, bigCanvas.width, bigCanvas.height); // 移到 if(all) 里面！
+                bigContainer.innerHTML = "";
+             }
+
+            if(pathMarkers.length === 0) return;
+
+            let markerxmin = ((current % width) - 1) * 128;
+            let markerymin = (Math.ceil(current / width) - 1) * 128;
+
+            // 1. 在小地图绘制连线与点
+            sCtx.beginPath();
+            sCtx.strokeStyle = "#ff3333";
+            sCtx.lineWidth = 3;
+            sCtx.setLineDash([6, 4]);
+
+            let smallCoords = [];
+            for(let i = 0; i < pathMarkers.length; i++) {
+                let sx = pathMarkers[i].x - markerxmin;
+                let sy = pathMarkers[i].y - markerymin;
+                smallCoords.push({sx, sy, note: pathMarkers[i].note, idx: i});
+                if(i === 0) sCtx.moveTo(sx, sy);
+                else sCtx.lineTo(sx, sy);
+            }
+            sCtx.stroke();
+
+            // 绘制小地图节点与文字
+            for(let i = 0; i < smallCoords.length; i++) {
+                let p = smallCoords[i];
+                if(p.sx >= 0 && p.sx <= 384 && p.sy >= 0 && p.sy <= 384) {
+                    // 小地图点标记
+                    let img = document.createElement("img");
+                    img.src = "img/marker_path.png";
+                    img.style.position = "absolute";
+                    img.style.left = (p.sx - 6) + "px";
+                    img.style.top = (p.sy - 6) + "px";
+                    img.style.zIndex = "5";
+                    img.style.cursor = "pointer";
+                    // 容错处理：如果图标缺失则渲染粉红圆圈
+                    img.onerror = function(){
+                        this.style.display = "none";
+                        sCtx.beginPath();
+                        sCtx.arc(p.sx, p.sy, 5, 0, Math.PI*2);
+                        sCtx.fillStyle = "#ff0055";
+                        sCtx.fill();
+                        sCtx.strokeStyle = "#ffffff";
+                        sCtx.lineWidth = 1.5;
+                        sCtx.stroke();
+                    };
+                    img.oncontextmenu = function(e){
+                        e.stopPropagation();
+                        e.preventDefault();
+                        add = 0;
+                        handlePathRightClick(e, false);
+                        return false;
+                    };
+                    smallContainer.appendChild(img);
+
+                    if(p.note) {
+                        let label = document.createElement("div");
+                        label.className = "path-label";
+                        label.innerText = p.note;
+                        label.style.left = p.sx + "px";
+                        label.style.top = p.sy + "px";
+                        smallContainer.appendChild(label);
+                    }
+                }
+            }
+
+            // 2. 在大地图绘制连线与点
+            if(all) {
+                bCtx.beginPath();
+                bCtx.strokeStyle = "#ff3333";
+                bCtx.lineWidth = 2;
+                bCtx.setLineDash([4, 3]);
+
+                for(let i = 0; i < pathMarkers.length; i++) {
+                    let bx = parseInt((pathMarkers[i].x/(width*128)) * (mapmaxx)) + mapx + 12;
+                    let by = parseInt((pathMarkers[i].y/((max/width) * 128)) * (mapmaxy)) + mapy + 12;
+
+                    if(i === 0) bCtx.moveTo(bx, by);
+                    else bCtx.lineTo(bx, by);
+
+                    let img = document.createElement("img");
+                    img.src = "img/marker_path.png";
+                    img.style.position = "absolute";
+                    img.style.left = (bx - 6) + "px";
+                    img.style.top = (by - 6) + "px";
+                    img.style.zIndex = "5";
+                    img.style.cursor = "pointer";
+                    img.onerror = function(){
+                        this.style.display = "none";
+                        bCtx.beginPath();
+                        bCtx.arc(bx, by, 4, 0, Math.PI*2);
+                        bCtx.fillStyle = "#ff0055";
+                        bCtx.fill();
+                        bCtx.strokeStyle = "#ffffff";
+                        bCtx.lineWidth = 1;
+                        bCtx.stroke();
+                    };
+                    img.oncontextmenu = function(e){
+                        e.stopPropagation();
+                        e.preventDefault();
+                        add = 0;
+                        handlePathRightClick(e, true);
+                        return false;
+                    };
+                    bigContainer.appendChild(img);
+
+                    if(pathMarkers[i].note) {
+                        let label = document.createElement("div");
+                        label.className = "path-label";
+                        label.innerText = pathMarkers[i].note;
+                        label.style.left = bx + "px";
+                        label.style.top = by + "px";
+                        bigContainer.appendChild(label);
+                    }
+                }
+                bCtx.stroke();
+            }
+        }
+            
+        function delmarker(num) {
+            small = document.getElementById('smallmarker' + num);
+            if(small) small.style.display = "none";
+            var big = document.getElementById('marker' + num);
+            if(big) big.style.display = "none";
+            if(marker[num]) marker[num][3] = 1;
+            refreshmarkers(1);
+            updateurl(1);
+            markernum--;
+        }
+
+        // 静默清除所有自定义标记点数据
+        function clearAllMarkersSilent() {
+            if(!marker || marker.length === 0) return;
+            for(var i = 0; i < marker.length; i++) {
+                marker[i][3] = 1;
+                var small = document.getElementById('smallmarker' + i);
+                if(small) small.style.display = "none";
+                var big = document.getElementById('marker' + i);
+                if(big) big.style.display = "none";
+            }
+            markernum = 0;
+        }
+
+        function clearAllMarkers() {
+            clearAllMarkersSilent();
+            refreshmarkers(1);
+            updateurl(1);
+        }
+            
+        function refreshmarkers(all) {
+            if(holdup == 0) {
+                holdup = 1;
+                temp = '<img src="img/0p_white.png" height="10px" width="10px">';
+                temp2 = "";
+                pos = findPos(smallmap);
+                pos2 = findPos(bigmap);
+                markerxmin = ((current % width) - 1) * 128;
+                markerymin = (Math.ceil(current / width) - 1) * 128;
+                markerxmax = markerxmin + 128 * 3;
+                markerymax = markerymin + 128 * 3;
+                
+                if(filter[0]) { 
+                    for(i = 0; i < marker.length; i++) {
+                        if(!marker[i][3]) {
+                            let noteText = marker[i][4] || "";
+
+                            if(
+                                marker[i][0] >= (markerxmin + 4) 
+                                && marker[i][0] <= (markerxmax - 4)
+                                && marker[i][1] >= (markerymin + 7) 
+                                && marker[i][1] <= (markerymax - 7)
+                            ) {
+                                markerx = marker[i][0] - markerxmin - 5;
+                                markery = marker[i][1] - markerymin -5;
+                                temp += '<img id="smallmarker' + i + '" onclick="event.stopPropagation(); add = 0; editMarkerNote(' + i + ');" oncontextmenu="event.stopPropagation(); event.preventDefault(); add = 0; delmarker(' + i + '); return false;" src="img/marker' + marker[i][2] + '.png" style="position: absolute; top: ' + markery +'px; left: ' + markerx +'px; cursor:pointer; z-index:5;">';
+                                if(noteText) {
+                                    temp += '<div class="marker-label" style="left:' + (markerx + 5) + 'px; top:' + markery + 'px;">' + noteText + '</div>';
+                                }
+                            }
+                                
+                            if(all) {
+                                markerbigx = parseInt((marker[i][0]/(width*128)) * (mapmaxx)) + mapx - 5;
+                                markerbigy = parseInt((marker[i][1]/((max/width) * 128)) * (mapmaxy)) + mapy - 5;
+                                temp2 += '<img id="marker' + i + '" onclick="event.stopPropagation(); add = 0; editMarkerNote(' + i + ');" oncontextmenu="event.stopPropagation(); event.preventDefault(); add = 0; delmarker(' + i + '); return false;" src="img/marker' + marker[i][2] + '.png" style="position: absolute; top: ' + markerbigy +'px; left: ' + markerbigx +'px; cursor:pointer; z-index:5;">';
+                                if(noteText) {
+                                    temp2 += '<div class="marker-label" style="left:' + (markerbigx + 5) + 'px; top:' + markerbigy + 'px;">' + noteText + '</div>';
+                                }
+                            }
+                        }
+                    }
+                }
+                    
+                if(filter[1] && typeof revealers !== "undefined") { 
+                    for(i = 0; i < revealers.length; i++) {
+                        if(revealers[i][0] >= (markerxmin + 4) && revealers[i][0] <= (markerxmax - 4) && revealers[i][1] >= (markerymin + 7) && revealers[i][1] <= (markerymax - 7)) {
+                            markerx = revealers[i][0] - markerxmin - 5;
+                            markery = revealers[i][1] - markerymin - 5;
+                            temp += '<img oncontextmenu="return false;" src="img/markerrevealer.png" style="position: absolute; top: ' + markery +'px; left: ' + markerx +'px;">';
+                        }
+                            
+                        if(all) {
+                            if(initial != 0) {
+                                if(revealers[i][0] > tempmaxx || revealers[i][0] < tempminx || revealers[i][1] > tempmaxy || revealers[i][1] < tempminy) continue;
+                            }
+                            markerbigx = parseInt((revealers[i][0]/(width*128)) * (mapmaxx)) + mapx - 5;
+                            markerbigy = parseInt((revealers[i][1]/((max/width) * 128)) * (mapmaxy)) + mapy - 5;           
+                            temp2 += '<img oncontextmenu="return false;" src="img/markerrevealer.png" style="position: absolute; top: ' + markerbigy +'px; left: ' + markerbigx +'px;">';
+                        }
+                    }
+                }
+                    
+                if(filter[2] && typeof teleports !== "undefined") { 
+                    for(i = 0; i < teleports.length; i++) {
+                        if(teleports[i][0] >= (markerxmin + 4) && teleports[i][0] <= (markerxmax - 4) && teleports[i][1] >= (markerymin + 7) && teleports[i][1] <= (markerymax - 7)) {
+                            markerx = teleports[i][0] - markerxmin - 6;
+                            markery = teleports[i][1] - markerymin - 6;
+                            temp += '<img oncontextmenu="return false;" src="img/markerteleport.png" style="position: absolute; top: ' + markery +'px; left: ' + markerx +'px;">';
+                        }
+                            
+                        if(all) {
+                            if(initial != 0) {
+                                if(teleports[i][0] > tempmaxx || teleports[i][0] < tempminx || teleports[i][1] > tempmaxy || teleports[i][1] < tempminy) continue;
+                            }
+                            markerbigx = parseInt((teleports[i][0]/(width*128)) * (mapmaxx)) + mapx + - 6;
+                            markerbigy = parseInt((teleports[i][1]/((max/width) * 128)) * (mapmaxy)) + mapy - 6;
+                            temp2 += '<img oncontextmenu="return false;" src="img/markerteleport.png" style="position: absolute; top: ' + markerbigy +'px; left: ' + markerbigx +'px;">';
+                        }
+                    }
+                }
+                    
+                markerssmall.innerHTML = temp;
+                if(all) markersbig.innerHTML = temp2;
+
+                // 绘制路径线段与图标文本
+                drawPathMarkers(all);
+
+                holdup = 0;
+            }
+        }
+            
+        function changemarker(num) {
+            // 选择或更改标记样式时，确保关闭路径绘制模式（两者互斥）
+            if(pathDrawMode) {
+                pathDrawMode = 0;
+                document.getElementById("filterPath").className = "filter-off";
+            }
+            document.getElementById('selectmarker' + markertype).className = "marker-style";
+            markertype = num;
+            document.getElementById('selectmarker' + num).className = "marker-style-selected";
+        }
+            
+        function changefilter(num) {
+            if(filter[num] != 1) {
+                document.getElementById('filter' + num).className = "filter-on";
+                filter[num] = 1;
+
+                // 勾选显示自定义标记点时，自动清空路径并关闭路径绘制功能
+                if(num === 0) {
+                    if(pathDrawMode) {
+                        pathDrawMode = 0;
+                        document.getElementById("filterPath").className = "filter-off";
+                    }
+                    pathMarkers = [];
+                }
+            } else {
+                document.getElementById('filter' + num).className = "filter-off";
+                filter[num] = 0;
+            }
+            refreshmarkers(1);
+            updateurl(1);
+        }
+            
+        function updateurl(changetitle) {
+            temp = "?tool=Map&map=" + mapname;
+            temp2 = "";
+            for(i = 0; i < filter.length; i++) {
+                temp2 += filter[i];
+            }
+            temp += "&filter=" + temp2;
+            temp += "&coord=" + current;
+            if(marker && marker.length != 0) {
+                let mStrArr = [];
+                for(i = 0; i < marker.length; i++) {
+                    if(marker[i][3] == 0) {
+                        mStrArr.push(`${marker[i][2]},${marker[i][0]},${marker[i][1]},${encodeURIComponent(marker[i][4]||"")}`);
+                    }
+                }
+                if(mStrArr.length > 0) {
+                    temp += "&markers=" + mStrArr.join(";");
+                }
+            }
+
+            // 序列化路径 Marker 列表
+            if(pathMarkers && pathMarkers.length > 0) {
+                let pStr = pathMarkers.map(p => `${p.x},${p.y},${encodeURIComponent(p.note||"")}`).join(";");
+                temp += "&paths=" + pStr;
+            }
+            
+            if(link) link.href = temp;
+            if(link2) link2.href = site_url + temp;
+            
+            if(changetitle == 1 && top.history && top.history.replaceState) {
+                try {
+                    top.history.replaceState({ state: "bar" }, document.title, site_url + temp);
+                } catch(e) {}
+            }
+        }
+
+        function showmaps(num) {
+            if(maplists[num] && maplists[num].style.display == "block") { 
+                maplists[num].style.display = "none"; 
+                if(maplistselect[num]) maplistselect[num].style.fontStyle = "normal"; 
+                refreshmarkers(1); 
+            } else {
+                for(i = 0; i < maplists.length; i++) { 
+                    if(maplists[i]) maplists[i].style.display = "none"; 
+                    if(maplistselect[i]) maplistselect[i].style.fontStyle = "normal"; 
+                }
+                if(maplists[num]) maplists[num].style.display = "block";
+                if(maplistselect[num]) maplistselect[num].style.fontStyle = "italic"; 
+                refreshmarkers(1);
+            }
+        }
+            
+        function init() {
+            maplists[0] = document.getElementById('maplist0');
+            maplists[1] = document.getElementById('maplist1');
+            maplists[2] = document.getElementById('maplist2');
+            maplists[3] = document.getElementById('maplist3');
+            maplistselect[0] = document.getElementById('mapselect0');
+            maplistselect[1] = document.getElementById('mapselect1');
+            maplistselect[2] = document.getElementById('mapselect2');
+            maplistselect[3] = document.getElementById('mapselect3');
+            map[0] = document.getElementById('map1');
+            map[1] = document.getElementById('map2');
+            map[2] = document.getElementById('map3');
+            map[3] = document.getElementById('map4');
+            map[4] = document.getElementById('map5');
+            map[5] = document.getElementById('map6');
+            map[6] = document.getElementById('map7');
+            map[7] = document.getElementById('map8');
+            map[8] = document.getElementById('map9');
+            
+            // 全局地图参数兜底安全防护
+            if(typeof width === "undefined") window.width = 3;
+            if(typeof max === "undefined") window.max = 9;
+            if(typeof mapx === "undefined") window.mapx = 0;
+            if(typeof mapy === "undefined") window.mapy = 0;
+            if(typeof mapmaxx === "undefined") window.mapmaxx = 390;
+            if(typeof mapmaxy === "undefined") window.mapmaxy = 390;
+            if(typeof mapboxheight === "undefined") window.mapboxheight = 128;
+            if(typeof revealers === "undefined") window.revealers = [];
+            if(typeof teleports === "undefined") window.teleports = [];
+
+            if(typeof realwidth !== "number") realwidth = width;
+            if(typeof initial !== "number") initial = 0;
+            else {
+                initial -= 1;
+                tempminx = initial % realwidth * 128;
+                tempmaxx = tempminx + width * 128;
+                tempminy = Math.floor(initial/realwidth) * 128;
+                tempmaxy = tempminy + max/width * 128;
+                
+                for(i = 0; i < revealers.length; i++) {
+                    revealers[i][0] -= tempminx;
+                    revealers[i][1] -= tempminy;
+                }
+                    
+                for(i = 0; i < teleports.length; i++) {
+                    teleports[i][0] -= tempminx;
+                    teleports[i][1] -= tempminy;
+                }
+                    
+                tempminx = 0;
+                tempmaxx = width * 128;
+                tempminy = 0;
+                tempmaxy = max/width * 128;
+            }
+            if(typeof realmap != "undefined") mapnum = realmap;
+            
+            if(max == 9) current = 1;
+            else {
+                if(current == 0) {
+                    current = (Math.floor(Math.random() * (width - 2)) + 1) * (Math.floor(Math.random() * (max/width - 2)) + 1);
+                } else if(current > max - 2 - width * 2) {
+                    current = max - 2 - width * 2;
+                } else if(current < 0) {
+                    current = 1;
+                }
+
+                if(current % width == width - 1) current -= 1;
+                else if(current % width == 0) current += 1;
+            }
+            
+            setRealcurrent();
+            map[0].style.backgroundImage = "url(img/minimap/" + mapnum + "/" + (realcurrent) + ".jpg)";
+            map[1].style.backgroundImage = "url(img/minimap/" + mapnum + "/" + (realcurrent+1) + ".jpg)";
+            map[2].style.backgroundImage = "url(img/minimap/" + mapnum + "/" + (realcurrent+2) + ".jpg)";
+            map[3].style.backgroundImage = "url(img/minimap/" + mapnum + "/" + (realcurrent+realwidth) + ".jpg)";
+            map[4].style.backgroundImage = "url(img/minimap/" + mapnum + "/" + (realcurrent+realwidth+1) + ".jpg)";
+            map[5].style.backgroundImage = "url(img/minimap/" + mapnum + "/" + (realcurrent+realwidth+2) + ".jpg)";
+            map[6].style.backgroundImage = "url(img/minimap/" + mapnum + "/" + (realcurrent+realwidth*2) + ".jpg)";
+            map[7].style.backgroundImage = "url(img/minimap/" + mapnum + "/" + (realcurrent+realwidth*2+1) + ".jpg)";
+            map[8].style.backgroundImage = "url(img/minimap/" + mapnum + "/" + (realcurrent+realwidth*2+2) + ".jpg)";
+            
+            bigmap = document.getElementById('bigmap');
+            smallmap = document.getElementById('smallmap');
+            mapbox = document.getElementById('mapbox');
+            link = document.getElementById('link');
+            link2 = document.getElementById('link2');
+            markerssmall = document.getElementById('markerssmall');
+            markersbig = document.getElementById('markersbig');
+            
+            if(mapboxheight != 0) {
+                let boxDim = 384/(width * 128) * mapmaxx;
+                mapboxheight = boxDim;
+                mapbox.style.width = boxDim + "px";
+                mapbox.style.height = boxDim + "px";
+            } else { 
+                mapbox.style.width = "0px";
+                mapbox.style.height = "0px";
+            }
+            
+            movemapbox();
+            mapbox.style.display = "inline";
+            updateurl(1);
+            refreshmarkers(1);
+            add = 1;
+            
+            document.onkeypress = function (event){ event = event || window.event; return checkKey(event); }
+            document.onkeyup = function (){ keydown = 0; }
+        }
     </script>
-
-     <style>
-
-     body,html {
-
-         width:auto !important;
-
-         margin:0 !important;
-
-         padding:12px !important;
-
-     }
-
-     body{
-
-         display:flex !important;
-
-         justify-content:center !important;
-
-         background-color:#e6e6e6 !important;
-
-     }
-
-     .page-wrap {
-
-         flex-shrink: 0;
-
-     }
-
-     /* 深色大外壳，全部内容装进去 */
-
-     .main-wrapper {
-
-         background:#2c3038;
-
-         border:2px solid #51555D;
-
-         border-radius:10px;
-
-         padding:14px;
-
-     }
-
-     /* 容器内部普通文字变成浅色 */
-
-     .main-wrapper > span {
-
-         color:#eeeeee !important;
-
-         font-size:10pt;
-
-     }
-
-     /* 模块之间增加间距 */
-
-     .titlebar {
-
-         margin-bottom:10px !important;
-
-     }
-
-     .map-selection {
-
-         margin:0 0 12px 0 !important;
-
-     }
-
-     /* ==========子选项自动换行设置，强制覆盖外部css的nowrap========== */
-
-     .map-selection span {
-
-          white-space:normal !important;
-
-          display:inline-block !important;
-
-          padding:2px 6px !important;
-
-          margin:2px 0 !important;
-
-     }
-
-     .map-selection span:not(:last-child)::after{
-
-         content:"|";
-
-         margin-left:6px;
-
-         color:#cccccc;
-
-     }
-
-     /* =================================================== */
-
-     .map-main-table td:first-child {
-
-          vertical-align: middle !important;
-
-     }
-     .map-enlarged {
-
-         box-shadow: 0 0 10px rgba(0,0,0,0.5);
-
-         border-radius:6px;
-
-         overflow:hidden !important;
-
-     }
-     .bigmap-background {
-
-         border-radius:6px;
-
-         overflow:hidden !important;
-
-     }
-
-     .author-footer-note {
-
-          margin-top:0px;
-
-          text-align:center;
-
-          color:#cccccc !important;
-
-          font-size:14px;
-
-     }
-
-     </style>
-
 </head>
-
 <body>
-
 <div class="page-wrap">
-
-    <!-- 新增深色容器main-wrapper，包裹全部页面 -->
-
+    <!-- 深色容器包裹全部页面 -->
     <div class="main-wrapper">
-
 <table class="titlebar">
-
     <tr>
-
         <td class="titlebar-topleft"></td>
-
         <td class="titlebar-top"></td>
-
         <td class="titlebar-topright"></td>
-
     </tr>
-
     <tr>
-
         <td class="titlebar-left"></td>
-
         <td id="map-selector-container">
-
         </td>
-
         <td class="titlebar-right"></td>
-
     </tr>
-
     <tr>
-
         <td class="titlebar-bottomleft"></td>
-
         <td class="titlebar-bottom"></td>
-
         <td class="titlebar-bottomright"></td>
-
     </tr>
-
 </table>
-
 <br>
-
 <span>点击上方标签选择你需要的地图，用以寻找地图传送点、娜美坎印记（阴影塔）以及你需要的任何点位，本网页完全开源，可在github上搜索</span>
-
 <br>
-
 <br>
-
 <table class="map-main-table" onselectstart="return false" ondragstart="return false">
-
     <tr>
-
         <td style="vertical-align: top;">
             <div style="margin-top:-30px;">
-
                  <div class="left-panel-title">当前区域实时地图</div>
-
                  <div class="map-enlarged" id="smallmap" style="position: relative;" oncontextmenu="addmarker(event,0); return false;">
+                     <!-- 路径 Canvas & 文本容器 -->
+                     <canvas id="pathCanvasSmall" width="384" height="384" style="position: absolute; top:0; left:0; z-index:2; pointer-events:none;"></canvas>
+                     <div id="pathLabelsSmall" style="position: absolute; top:0; left:0; z-index:4;"></div>
 
-                     <div id="markerssmall" style="position: absolute; z-index: 1;"></div>
-
+                     <div id="markerssmall" style="position: absolute; z-index: 3;"></div>
                      <div class="map-enlarged-background" style="position: absolute; top: 0px; left: 0px;"></div>
-
                      <div class="map-enlarged-background-gradient" oncontextmenu="return false"></div>
-
                      <table>
-
                          <tr>
-
                              <td class="map-enlarged-image" id="map1"></td>
-
                              <td class="map-enlarged-image" id="map2"></td>
-
                              <td class="map-enlarged-image" id="map3"></td>
-
                          </tr>
-
                          <tr>
-
                              <td class="map-enlarged-image" id="map4"></td>
-
                              <td class="map-enlarged-image" id="map5"></td>
-
                              <td class="map-enlarged-image" id="map6"></td>
-
                          </tr>
-
                          <tr>
-
                             <td class="map-enlarged-image" id="map7"></td>
-
                              <td class="map-enlarged-image" id="map8"></td>
-
                              <td class="map-enlarged-image" id="map9"></td>
-
                          </tr>
-
                      </table>
                 </div>
             </div>
-
         </td>
-
         <td style="vertical-align: top; padding-left: 16px;">
-
             <div class="bigmap-background" style="position: relative;" onclick="jumpmap(event)" oncontextmenu="addmarker(event,1)">
+                <!-- 路径 Canvas & 文本容器 -->
+                <canvas id="pathCanvasBig" width="532" height="441" style="position: absolute; top:0; left:0; z-index:2; pointer-events:none;"></canvas>
+                <div id="pathLabelsBig" style="position: absolute; top:0; left:0; z-index:4;"></div>
 
                 <div id="bigmap" style="float: left;">
-
-                    <div id="markersbig" style="position: absolute; z-index: 1;"></div>
-
+                    <div id="markersbig" style="position: absolute; z-index: 3;"></div>
                     <div style="position: absolute; z-index: 2;">
-
                         <img oncontextmenu="return false;" id="mapbox" src="img/50p_white.png" style="position: absolute; display: none;">
-
                     </div>
-
                 </div>
-
                 <div class="map-gradient" oncontextmenu="return false"></div>
-
                 <div class="instructions" oncontextmenu="return false">
-
                      点击地图，调整左侧实时地图的位置。<br><br>
-
-                     在地图上点击右键放置自定义标记，再次右键可以删除自定义标记。<br><br>
-
+                     开启自定义标记功能时，按鼠标右键可放置带名称的自定义标记，左键点击标记可修改名称，右键可删除。<br><br>
+                     开启自定义路径功能后，按鼠标右键放置路径点并命名。<br><br>
                      自定义标记点样式：<br>
-
                     <div id="selectmarker0" class="marker-style-selected"><a href="javascript:void(0)" onclick="changemarker(0);"><img src="img/marker0.png"></a></div>
-
                     <div id="selectmarker1" class="marker-style"><a href="javascript:void(0)" onclick="changemarker(1);"><img src="img/marker1.png"></a></div>
-
                     <div id="selectmarker2" class="marker-style"><a href="javascript:void(0)" onclick="changemarker(2);"><img src="img/marker2.png"></a></div>
-
                     <div id="selectmarker3" class="marker-style"><a href="javascript:void(0)" onclick="changemarker(3);"><img src="img/marker3.png"></a></div>
-
                     <div id="selectmarker4" class="marker-style"><a href="javascript:void(0)" onclick="changemarker(4);"><img src="img/marker4.png"></a></div>
-
                     <div id="selectmarker5" class="marker-style"><a href="javascript:void(0)" onclick="changemarker(5);"><img src="img/marker5.png"></a></div>
-
                     <div id="selectmarker6" class="marker-style"><a href="javascript:void(0)" onclick="changemarker(6);"><img src="img/marker6.png"></a></div>
-
                     <div id="selectmarker7" class="marker-style"><a href="javascript:void(0)" onclick="changemarker(7);"><img src="img/marker7.png"></a></div>
-
                     <div id="selectmarker8" class="marker-style"><a href="javascript:void(0)" onclick="changemarker(8);"><img src="img/marker8.png"></a></div>
-
                     <div id="selectmarker9" class="marker-style"><a href="javascript:void(0)" onclick="changemarker(9);"><img src="img/marker9.png"></a></div>
-
                     <div class="filters">
-
                         <a href="javascript:void(0)" onclick="changefilter(0);">
-
-                            <div id="filter0" class="">显示自定义标记点</div>
-
+                            <div id="filter0" class="">显示自定义标记</div>
                         </a>
-
+                        <a href="javascript:void(0)" onclick="clearAllMarkers();" class="clear-btn">
+                            <div>清除所有自定义标记</div>
+                        </a>
+                        <a href="javascript:void(0)" onclick="togglePathDrawMode();">
+                            <div id="filterPath" class="">自定义路径绘制</div>
+                        </a>
+                        <a href="javascript:void(0)" onclick="clearAllPathMarkers();" class="clear-btn">
+                            <div>清除所有自定义路径</div>
+                        </a>
                         <a href="javascript:void(0)" onclick="changefilter(1);">
-
-                            <div id="filter1" class="">显示那美坎印记</div>
-
+                            <div id="filter1" class="">显示娜美坎印记</div>
                         </a>
-
                         <a href="javascript:void(0)" onclick="changefilter(2);">
-
                             <div id="filter2" class="">显示瞬间移动传送点</div>
-
                         </a>
-
                     </div>
-
                 </div>
-
             </div>
-
         </td>
-
     </tr>
-
 </table>
-
 <div class="author-footer-note">
-
  <b>作者：<br>
-    
     點點點丶<br><br>
-
      调整了什么：<br>
-
-     <b style="color:#ffaa0c;">在区域地图里补充了武道寺专属区域；<br>
-
-     在世界大地图上补充了法郎沙漠南部；<br>
-
+     <b style="color:#ffaa0c;">新增自定义路径标记绘制功能，且可在实时地图中显示，可命名；<br>
      将全部文字翻译为游戏官方的中文文本；<br>
-
-     将原生php语言脚本完全修改为html语言脚本，以降低编辑门槛；</b><br><br>
-
+     在世界大地图上补充了法郎沙漠南部；<br>
+     在区域地图里补充了武道寺专属区域；<br>
+     将原生php语言脚本完全修改为html语言脚本，优化js与css代码，降低编辑门槛；</b><br><br>
      其他：<br>
-
      地图根据Citrinate（西特里纳特）2019年公开的源码修改而成，大多服务器都在使用该源码<br>
+     该工具由国人流派10086内部修改并使用，目前开源给所有国人使用，希望该地图能帮助到你<br><br>
 
-     该工具由国人流派10086内部修改并使用，目前开源给所有国人使用，希望该地图能帮助到你</b><br><br>
-
+     版本：<br>
+     制作时间2021年9月25日；上次修改时间2026年8月29日</b><br><br>
 </div>
 </div> 
 </div>
-<script type="text/javascript" src="js/map.js"></script>
+
 <script>
-
     document.addEventListener("DOMContentLoaded", pageBootstrap);
-
 </script>
 </body>
 </html>
