@@ -201,7 +201,9 @@
          font-size:14px;
     }
     </style>
-
+    <!-- 引入 html2canvas 截图库 -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js">
+    </script>
     <script type="text/javascript">
         // =====================【页面配置与逻辑初始化】=====================
         const _default_map = "world";
@@ -215,9 +217,9 @@
                 slug:"world-zones",
                 label:"区域地图",
                 maps:[
-                    "fearland", "franfran-desert-north", "karin-forest","papaya-island", 
-                    "mushroom-rocks-north", "mushroom-rocks-south", "porunga-rocks-north","porunga-rocks-south", 
-                    "west-city", "westlands", "yahhoi-east", "yahhoi-west",
+                    "yahhoi-west", "yahhoi-east", "franfran-desert-north", "karin-forest",
+                    "porunga-rocks-north","porunga-rocks-south", "west-city", "westlands",
+                    "fearland", "mushroom-rocks-north", "mushroom-rocks-south", "papaya-island", 
                     "world-martial-arts-tournament-city", "guild-dojo", "kame-house",
                 ]
             },
@@ -448,6 +450,34 @@
                     </a>`;
                 }
             }
+
+            // 【新增】：在顶部标签最右侧追加导出截图按钮（右浮动排版）
+            html += `
+            <div style="float: right; display: flex; gap: 4px;">
+                <a href="javascript:void(0)" onclick="exportMapImage('small');" title="导出左侧实时小地图截图" style="text-decoration: none;">
+                    <div class="small-button">
+                        <table>
+                            <tr>
+                                <td class="blue-bottom-left"></td>
+                                <td class="blue-bottom-center" style="color: #ffcc00;">📷 导出实时地图</td>
+                                <td class="blue-bottom-right"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </a>
+                <a href="javascript:void(0)" onclick="exportMapImage('big');" title="导出右侧大地图截图" style="text-decoration: none;">
+                    <div class="small-button">
+                        <table>
+                            <tr>
+                                <td class="blue-bottom-left"></td>
+                                <td class="blue-bottom-center" style="color: #ffcc00;">📷 导出世界地图</td>
+                                <td class="blue-bottom-right"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </a>
+            </div>`;
+
             for(const group of _map_groups){
                 if(group.maps.length>1){
                     const showStyle = (activeSlug!==group.slug) ? 'style="display:none"' : "";
@@ -741,37 +771,16 @@
                 } else return;
             }
 
-            // 判断是否点击了已有的路径点 (判定容差为 15px)
-            let existingIdx = -1;
-            for(let i = 0; i < pathMarkers.length; i++) {
-                let dist = Math.hypot(pathMarkers[i].x - markerx, pathMarkers[i].y - markery);
-                if(dist <= 15) {
-                    existingIdx = i;
-                    break;
-                }
-            }
-
-            if(existingIdx !== -1) {
-                // 对已有路径点右键：修改备注
-                let oldNote = pathMarkers[existingIdx].note || "";
-                let newNote = prompt("修改该路径点的备注名称：", oldNote);
-                if(newNote !== null) {
-                    pathMarkers[existingIdx].note = newNote.trim();
-                    refreshmarkers(1);
-                    updateurl(1);
-                }
-            } else {
-                // 点击空白处：新增路径点
-                let noteInput = prompt("请输入新路径点的备注名称（留空则不显示文本）：", "");
-                if(noteInput !== null) {
-                    pathMarkers.push({
-                        x: markerx,
-                        y: markery,
-                        note: noteInput.trim()
-                    });
-                    refreshmarkers(1);
-                    updateurl(1);
-                }
+            // 新增路径点逻辑（首次右键弹出命名）
+            let noteInput = prompt("请输入新路径点的备注名称（留空则不显示文本）：", "");
+            if(noteInput !== null) {
+                pathMarkers.push({
+                    x: markerx,
+                    y: markery,
+                    note: noteInput.trim()
+                });
+                refreshmarkers(1);
+                updateurl(1);
             }
         }
 
@@ -849,7 +858,10 @@
                         e.stopPropagation();
                         e.preventDefault();
                         add = 0;
-                        handlePathRightClick(e, false);
+                        // 右键直接删除/撤回该路径点
+                        pathMarkers.splice(p.idx, 1);
+                        refreshmarkers(1);
+                        updateurl(1);
                         return false;
                     };
                     smallContainer.appendChild(img);
@@ -900,7 +912,10 @@
                         e.stopPropagation();
                         e.preventDefault();
                         add = 0;
-                        handlePathRightClick(e, true);
+                        // 右键直接删除/撤回该路径点
+                        pathMarkers.splice(i, 1);
+                        refreshmarkers(1);
+                        updateurl(1);
                         return false;
                     };
                     bigContainer.appendChild(img);
@@ -1231,6 +1246,80 @@
             document.onkeypress = function (event){ event = event || window.event; return checkKey(event); }
             document.onkeyup = function (){ keydown = 0; }
         }
+        // =====================【撤回（Undo）核心逻辑】=====================
+        function undoLastAction() {
+            // 1. 优先撤回“自定义路径”的最后一个点
+            if (pathDrawMode || (pathMarkers && pathMarkers.length > 0)) {
+                if (pathMarkers.length > 0) {
+                    pathMarkers.pop(); // 弹出最后一个路径点
+                    refreshmarkers(1);
+                    updateurl(1);
+                    return;
+                }
+            }
+
+            // 2. 若无路径点或处于标记模式，撤回最后一个未被删除的自定义标记
+            if (marker && marker.length > 0) {
+                for (let i = marker.length - 1; i >= 0; i--) {
+                    if (marker[i][3] === 0) { // 找到最后一个未删除的标记
+                        delmarker(i);         // 调用原有的删除标记函数
+                        return;
+                    }
+                }
+            }
+        }
+
+        // 监听全局 Ctrl + Z / Cmd + Z 快捷键
+        document.addEventListener('keydown', function(e) {
+            // 过滤在 input / textarea 等输入框内的操作，避免误触发
+            const activeElem = document.activeElement;
+            if (activeElem && (activeElem.tagName === 'INPUT' || activeElem.tagName === 'TEXTAREA')) {
+                return;
+            }
+
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z' || e.keyCode === 90)) {
+                e.preventDefault(); // 阻止浏览器默认撤回行为
+                undoLastAction();
+            }
+        });
+        // =====================【地图截图 / 导出为图片功能】=====================
+        function exportMapImage(targetType) {
+            let targetElem = null;
+            let fileNamePrefix = mapname || "map";
+
+            if (targetType === 'small') {
+                targetElem = document.getElementById('smallmap');
+                fileNamePrefix += "_实时小地图";
+            } else if (targetType === 'big') {
+                targetElem = document.querySelector('.bigmap-background');
+                fileNamePrefix += "_大地图";
+            }
+
+            if (!targetElem) {
+                alert("未找到对应的地图区域！");
+                return;
+            }
+
+            // 使用 html2canvas 进行渲染捕获
+            html2canvas(targetElem, {
+                useCORS: true,       // 允许跨域图片资源
+                allowTaint: true,
+                backgroundColor: null // 保持透明/原背景色
+            }).then(function(canvas) {
+                // 生成图片并自动下载
+                const image = canvas.toDataURL("image/png");
+                const a = document.createElement('a');
+                const timestamp = new Date().toISOString().slice(0, 10);
+                a.href = image;
+                a.download = `${fileNamePrefix}_${timestamp}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }).catch(function(err) {
+                console.error("地图截图导出失败:", err);
+                alert("截图导出失败，请检查地图资源是否正常加载！");
+            });
+        }
     </script>
 </head>
 <body>
@@ -1306,9 +1395,9 @@
                 </div>
                 <div class="map-gradient" oncontextmenu="return false"></div>
                 <div class="instructions" oncontextmenu="return false">
-                     点击地图，调整左侧实时地图的位置。<br><br>
-                     开启自定义标记功能时，按鼠标右键可放置带名称的自定义标记，左键点击标记可修改名称，右键可删除。<br><br>
-                     开启自定义路径功能后，按鼠标右键放置路径点并命名。<br><br>
+                     在大地图选择位置，左侧实时地图自动跟随。<br><br>
+                     开启自定义标记功能时，按鼠标右键放置自定义标记点并命名，再按右键可删除。<br><br>
+                     开启自定义路径功能后，按鼠标右键放置路径点并命名，再按右键可删除。<br><br>
                      自定义标记点样式：<br>
                     <div id="selectmarker0" class="marker-style-selected"><a href="javascript:void(0)" onclick="changemarker(0);"><img src="img/marker0.png"></a></div>
                     <div id="selectmarker1" class="marker-style"><a href="javascript:void(0)" onclick="changemarker(1);"><img src="img/marker1.png"></a></div>
@@ -1349,17 +1438,18 @@
  <b>作者：<br>
     點點點丶<br><br>
      调整了什么：<br>
-     <b style="color:#ffaa0c;">新增自定义路径标记绘制功能，且可在实时地图中显示，可命名；<br>
+     <b style="color:#ffaa0c;">新增自定义路径标记绘制功能，且可在实时地图中显示，可命名可撤回；<br>
      将全部文字翻译为游戏官方的中文文本；<br>
      在世界大地图上补充了法郎沙漠南部；<br>
      在区域地图里补充了武道寺专属区域；<br>
+     新增地图导出为图片功能；<br>
      将原生php语言脚本完全修改为html语言脚本，优化js与css代码，降低编辑门槛；</b><br><br>
      其他：<br>
      地图根据Citrinate（西特里纳特）2019年公开的源码修改而成，大多服务器都在使用该源码<br>
      该工具由国人流派10086内部修改并使用，目前开源给所有国人使用，希望该地图能帮助到你<br><br>
 
      版本：<br>
-     制作时间2021年9月25日；上次修改时间2026年8月29日</b><br><br>
+     网站制作时间2021年9月25日；上次修改时间2026年8月21日</b><br><br>
 </div>
 </div> 
 </div>
