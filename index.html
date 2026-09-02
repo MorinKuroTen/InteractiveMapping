@@ -166,7 +166,7 @@
         font-size:10pt;
     }
     .titlebar {
-        margin-bottom:10px !important;
+        margin-bottom:0px !important;
     }
     .map-selection {
         margin:0 0 12px 0 !important;
@@ -195,7 +195,7 @@
         overflow:hidden !important;
     }
     .author-footer-note {
-         margin-top:0px;
+         margin-top:-20px;
          text-align:center;
          color:#cccccc !important;
          font-size:14px;
@@ -1282,6 +1282,80 @@
                 undoLastAction();
             }
         });
+        // =====================【路径/标记 导入与导出核心逻辑】=====================
+        // 导出数据（自动判断当前是路径还是标记）
+        function exportDataJSON() {
+            let exportData = {};
+            let typeName = "";
+
+            if (pathDrawMode) {
+                // 处于自定义路径绘制模式
+                if (!pathMarkers || pathMarkers.length === 0) {
+                    alert("当前没有任何路径数据可导出！");
+                    return;
+                }
+                exportData = { type: "path", data: pathMarkers };
+                typeName = "自定义路径";
+            } else {
+                // 处于自定义标记模式
+                if (!marker || marker.length === 0) {
+                    alert("当前没有任何自定义标记数据可导出！");
+                    return;
+                }
+                exportData = { type: "marker", data: marker };
+                typeName = "自定义标记";
+            }
+
+            const jsonStr = JSON.stringify(exportData, null, 2);
+
+            // 尝试写入系统剪贴板
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(jsonStr).then(() => {
+                    alert(`已成功将【${typeName}】数据复制到剪贴板！\n可直接发送给好友或进行备份。`);
+                }).catch(err => {
+                    // 剪贴板写入失败时备用降级方案
+                    prompt(`【${typeName}】数据导出如下，请手动复制：`, jsonStr);
+                });
+            } else {
+                prompt(`【${typeName}】数据导出如下，请手动复制：`, jsonStr);
+            }
+        }
+
+        // 导入数据（直接覆盖当前数据）
+        function importDataJSON() {
+            const inputStr = prompt("请粘贴导出的 JSON 路径/标记数据字符串：");
+            if (!inputStr || !inputStr.trim()) return;
+
+            try {
+                const parsed = JSON.parse(inputStr.trim());
+                
+                // 兼容处理：支持导出的带类型对象，也兼容纯数组格式
+                let importType = parsed.type;
+                let dataArray = parsed.data || parsed;
+
+                if (!Array.isArray(dataArray)) {
+                    alert("导入失败：数据格式不正确！");
+                    return;
+                }
+
+                if (pathDrawMode || importType === "path") {
+                    // 覆盖路径数据
+                    pathMarkers = dataArray;
+                    alert(`成功导入 ${pathMarkers.length} 个路径节点！`);
+                } else {
+                    // 覆盖标记数据
+                    marker = dataArray;
+                    alert(`成功导入 ${marker.length} 个自定义标记！`);
+                }
+
+                refreshmarkers(1);
+                updateurl(1);
+
+            } catch (e) {
+                console.error("JSON 解析错误:", e);
+                alert("导入失败：粘贴的数据非法，请检查 JSON 格式！");
+            }
+        }
         // =====================【地图截图 / 导出为图片功能】=====================
         function exportMapImage(targetType) {
             let targetElem = null;
@@ -1396,8 +1470,8 @@
                 <div class="map-gradient" oncontextmenu="return false"></div>
                 <div class="instructions" oncontextmenu="return false">
                      在大地图选择位置，左侧实时地图自动跟随。<br><br>
-                     开启自定义标记功能时，按鼠标右键放置自定义标记点并命名，再按右键可删除。<br><br>
-                     开启自定义路径功能后，按鼠标右键放置路径点并命名，再按右键可删除。<br><br>
+                     自定义标记：按鼠标右键放置自定义标记并命名，再按右键删除。<br><br>
+                     自定义路径绘制：按鼠标右键放置路径点并命名，再按右键删除。<br><br>
                      自定义标记点样式：<br>
                     <div id="selectmarker0" class="marker-style-selected"><a href="javascript:void(0)" onclick="changemarker(0);"><img src="img/marker0.png"></a></div>
                     <div id="selectmarker1" class="marker-style"><a href="javascript:void(0)" onclick="changemarker(1);"><img src="img/marker1.png"></a></div>
@@ -1410,14 +1484,27 @@
                     <div id="selectmarker8" class="marker-style"><a href="javascript:void(0)" onclick="changemarker(8);"><img src="img/marker8.png"></a></div>
                     <div id="selectmarker9" class="marker-style"><a href="javascript:void(0)" onclick="changemarker(9);"><img src="img/marker9.png"></a></div>
                     <div class="filters">
+                        <!-- 【新增】：自定义路径/标记 导入与导出小按钮 -->
+                        <div style="margin: -15px 0 40px 0; display: flex; gap: 4px;">
+                            <a href="javascript:void(0)" onclick="exportDataJSON()" style="text-decoration: none; flex: 1;">
+                                <div class="small-button" style="text-align: center; padding: 0px 0;">
+                                    <span style="font-size: 11px; color: #ffcc00;">📋导出数据</span>
+                                </div>
+                            </a>
+                            <a href="javascript:void(0)" onclick="importDataJSON()" style="text-decoration: none; flex: 1;">
+                                <div class="small-button" style="text-align: center; padding: 0px 0;">
+                                    <span style="font-size: 11px; color: #66ff66;">📥导入数据</span>
+                                </div>
+                            </a>
+                        </div>
                         <a href="javascript:void(0)" onclick="changefilter(0);">
-                            <div id="filter0" class="">显示自定义标记</div>
+                            <div id="filter0" class="">开启自定义标记</div>
                         </a>
                         <a href="javascript:void(0)" onclick="clearAllMarkers();" class="clear-btn">
                             <div>清除所有自定义标记</div>
                         </a>
                         <a href="javascript:void(0)" onclick="togglePathDrawMode();">
-                            <div id="filterPath" class="">自定义路径绘制</div>
+                            <div id="filterPath" class="">开启自定义路径绘制</div>
                         </a>
                         <a href="javascript:void(0)" onclick="clearAllPathMarkers();" class="clear-btn">
                             <div>清除所有自定义路径</div>
@@ -1439,17 +1526,17 @@
     點點點丶<br><br>
      调整了什么：<br>
      <b style="color:#ffaa0c;">新增自定义路径标记绘制功能，且可在实时地图中显示，可命名可撤回；<br>
+     新增导出地图功能，新增导入导出标记点与路径功能；<br>
      将全部文字翻译为游戏官方的中文文本；<br>
      在世界大地图上补充了法郎沙漠南部；<br>
      在区域地图里补充了武道寺专属区域；<br>
-     新增地图导出为图片功能；<br>
      将原生php语言脚本完全修改为html语言脚本，优化js与css代码，降低编辑门槛；</b><br><br>
      其他：<br>
      地图根据Citrinate（西特里纳特）2019年公开的源码修改而成，大多服务器都在使用该源码<br>
      该工具由国人流派10086内部修改并使用，目前开源给所有国人使用，希望该地图能帮助到你<br><br>
 
      版本：<br>
-     网站制作时间2021年9月25日；上次修改时间2026年8月21日</b><br><br>
+     网站制作时间2021年9月25日；上次修改时间2026年7月21日</b><br><br>
 </div>
 </div> 
 </div>
